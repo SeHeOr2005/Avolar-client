@@ -5,6 +5,8 @@ import { Button, Logo, TextInput, ThemeToggle } from '../../components/ui';
 import { useAuth } from '../../hooks/auth';
 import { ApiError } from '../../lib/api';
 import { useDocumentTitle } from '../../hooks/data';
+// El login se carga aparte del panel: necesita sus propios estilos aunque se entre directo a /admin/login.
+import '../../styles/admin.css';
 
 export default function Login() {
   useDocumentTitle('Acceso del equipo');
