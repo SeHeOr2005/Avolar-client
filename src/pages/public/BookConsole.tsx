@@ -9,6 +9,7 @@ import { useDocumentTitle, useSettings } from '../../hooks/data';
 import { useToast } from '../../hooks/toast';
 import type { Availability, GameConsole, PublicReservation } from '../../lib/types';
 import { rememberReservation } from './reservationMemory';
+import { PaymentMethods } from '../../components/PaymentMethods';
 
 export default function BookConsole() {
   const { slug = '' } = useParams();
@@ -417,6 +418,13 @@ export default function BookConsole() {
               <span className="small strong">Anticipo ({depositPct} %)</span>
               <strong>{money(deposit, s.currency)}</strong>
             </div>
+            {s.paymentMethods?.length > 0 && (
+              <div className="summary__pay">
+                <h3 className="eyebrow">Paga tu anticipo por</h3>
+                <PaymentMethods methods={s.paymentMethods} compact />
+                <p className="tiny muted">Recibirás tu número de reserva y envías el comprobante por WhatsApp.</p>
+              </div>
+            )}
           </aside>
         </div>
       </div>

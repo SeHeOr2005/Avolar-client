@@ -8,6 +8,7 @@ import { useDocumentTitle } from '../../hooks/data';
 import { useToast } from '../../hooks/toast';
 import type { PublicReservation } from '../../lib/types';
 import { recallReservation, rememberReservation } from './reservationMemory';
+import { PaymentMethods } from '../../components/PaymentMethods';
 
 /** Página de confirmación tras reservar: código, instrucciones de depósito y botón de WhatsApp. */
 export default function ReservationTicket() {
@@ -144,11 +145,16 @@ function Ticket({
           {r.status === 'PENDING_PAYMENT' && (
             <>
               <div className="stack" style={{ '--gap': '10px' } as React.CSSProperties}>
-                <h2 style={{ fontSize: 'var(--text-lg)' }}>Cómo pagar el anticipo</h2>
+                <h2 style={{ fontSize: 'var(--text-lg)' }}>
+                  Paga tu anticipo de {money(r.depositAmount, r.currency)}
+                </h2>
+                {r.paymentMethods?.length > 0 && <PaymentMethods methods={r.paymentMethods} />}
                 {r.paymentInstructions ? (
                   <div className="instructions">{r.paymentInstructions}</div>
                 ) : (
-                  <div className="instructions">Escríbenos por WhatsApp y te enviamos los datos para hacer el depósito.</div>
+                  !r.paymentMethods?.length && (
+                    <div className="instructions">Escríbenos por WhatsApp y te enviamos los datos para hacer el depósito.</div>
+                  )
                 )}
                 {r.holdExpiresAt && (
                   <p className="small muted">

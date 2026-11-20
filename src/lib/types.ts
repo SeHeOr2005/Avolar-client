@@ -7,6 +7,17 @@ export interface Hours {
   closeMinute: number;
 }
 
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  accountNumber: string;
+  accountHolder: string | null;
+  accountType: string | null;
+  details: string | null;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
 export interface PublicSettings {
   businessName: string;
   tagline: string | null;
@@ -29,6 +40,7 @@ export interface PublicSettings {
   paymentHoldMinutes: number;
   reservationsEnabled: boolean;
   lowStockThreshold: number;
+  paymentMethods: PaymentMethod[];
   hours: Hours[];
 }
 
@@ -97,6 +109,7 @@ export interface PublicReservation {
   paymentSentAt: string | null;
   createdAt: string;
   paymentInstructions: string | null;
+  paymentMethods: PaymentMethod[];
   whatsappNumber: string | null;
   whatsappUrl: string | null;
 }

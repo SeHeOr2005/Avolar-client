@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PageTitle } from '../../components/layout/AdminLayout';
 import { HoursEditor, defaultHours, hoursValid } from '../../components/admin/HoursEditor';
+import { PaymentMethodsAdmin } from '../../components/admin/PaymentMethodsAdmin';
 import { Button, ErrorState, Select, Skeleton, Switch, TextArea, TextInput } from '../../components/ui';
 import { ApiError, api } from '../../lib/api';
 import { useToast } from '../../hooks/toast';
@@ -138,7 +139,7 @@ export default function SettingsPage() {
               {...bind('paymentInstructions')}
               rows={5}
               maxLength={4000}
-              hint="Se muestran al cliente después de reservar: banco o billetera, número de cuenta, titular, etc."
+              hint="Texto adicional que ve el cliente después de reservar. Los números de Nequi, cuentas, etc. van en «Medios de pago del anticipo»."
             />
             <div className="grid-3">
               <TextInput label="Anticipo (%)" type="number" min={0} max={100} {...bind('depositPercent')} />
@@ -169,6 +170,8 @@ export default function SettingsPage() {
             </Button>
           </div>
         </form>
+        <div className="stack">
+        <PaymentMethodsAdmin />
         <section className="card panel">
           <h2 className="panel__title">Horario de atención</h2>
           <p className="small muted">Las consolas sin horario propio solo se pueden reservar dentro de este horario.</p>
@@ -179,6 +182,7 @@ export default function SettingsPage() {
             </Button>
           </div>
         </section>
+        </div>
       </div>
     </>
   );
