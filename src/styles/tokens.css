@@ -1,0 +1,156 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   AVOLAR — tokens de diseño
+   Dos mundos visuales que comparten estructura y cambian de piel:
+   · DÍA   — póster tropical de verano: atardecer rosa/naranja, mar azul, stickers
+             con contorno grueso (eco del trazo negro del logo) y sombras desplazadas.
+   · NOCHE — la paleta del logo: violeta eléctrico, menta, magenta sobre ciruela casi
+             negra. Superficies de vidrio, brillos neón, contornos finos.
+   Todo componente consume estos tokens; nada usa colores sueltos.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Escala y ritmo (compartidos) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --maxw: 1240px;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.375rem;
+  --text-xl: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem);
+  --text-2xl: clamp(2.2rem, 1.4rem + 3.4vw, 3.6rem);
+  --text-hero: clamp(3.4rem, 1.6rem + 8.6vw, 8.6rem);
+
+  --font-body: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-script: 'Yellowtail', 'Brush Script MT', cursive;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --z-header: 50;
+  --z-overlay: 80;
+  --z-toast: 100;
+}
+
+/* ─────────────────────────────── DÍA ─────────────────────────────── */
+:root[data-theme='day'] {
+  color-scheme: light;
+  --bg: #fff3e6;
+  --bg-tint: #ffe6d1;
+  --surface: #ffffff;
+  --surface-2: #fff8f0;
+  --surface-sunk: #fbe3cf;
+  --ink: #2a0e2c;
+  --ink-soft: #6a4462;
+  --ink-faint: #9c7a8f;
+  --line: #2a0e2c;
+  --line-soft: rgba(42, 14, 44, 0.14);
+
+  --brand: #ff2d7a;        /* rosa neón de atardecer */
+  --brand-strong: #e0115f;
+  --brand-ink: #ffffff;
+  --accent: #ff8a1e;       /* naranja sol */
+  --accent-2: #ffc93a;     /* amarillo playa */
+  --sea: #1495d6;          /* azul mar */
+  --palm: #11946b;
+
+  --ok: #0b8a5f;
+  --ok-bg: #d8f7e9;
+  --warn: #b45309;
+  --warn-bg: #ffefc7;
+  --info: #0f72a6;
+  --info-bg: #d6efff;
+  --danger: #d1123f;
+  --danger-bg: #ffe0e8;
+  --muted-bg: #efe1e9;
+
+  --font-display: 'Big Shoulders Display', 'Impact', sans-serif;
+  --display-weight: 900;
+  --display-case: uppercase;
+  --display-tracking: 0.005em;
+  --display-leading: 0.86;
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 26px;
+  --border-w: 2.5px;
+  --card-border: var(--border-w) solid var(--line);
+  --shadow-sm: 3px 3px 0 var(--line);
+  --shadow: 5px 5px 0 var(--line);
+  --shadow-lg: 8px 8px 0 var(--line);
+  --shadow-press: 1px 1px 0 var(--line);
+  --focus: 0 0 0 3px var(--surface), 0 0 0 6px var(--sea);
+
+  --hero-sky: linear-gradient(180deg, #3a1d6e 0%, #8f2c95 22%, #e43f8a 42%, #ff7046 62%, #ffb340 80%, #ffd779 100%);
+  --glow: none;
+  --glass: var(--surface);
+  --backdrop: rgba(42, 14, 44, 0.55);
+  --grain-opacity: 0.07;
+}
+
+/* ─────────────────────────────── NOCHE ─────────────────────────────── */
+:root[data-theme='night'] {
+  color-scheme: dark;
+  --bg: #0b0613;
+  --bg-tint: #140a22;
+  --surface: #160c26;
+  --surface-2: #1c1030;
+  --surface-sunk: #0f0819;
+  --ink: #f5efff;
+  --ink-soft: #b8a8d4;
+  --ink-faint: #7f6f9e;
+  --line: rgba(190, 150, 255, 0.24);
+  --line-soft: rgba(190, 150, 255, 0.12);
+
+  --brand: #8f3dff;        /* violeta del logo */
+  --brand-strong: #a865ff;
+  --brand-ink: #ffffff;
+  --accent: #2fe3a4;       /* menta de los cogollos */
+  --accent-2: #e043ff;     /* magenta de las hojas */
+  --sea: #52d2ff;
+  --palm: #2fe3a4;
+
+  --ok: #3ee8a9;
+  --ok-bg: rgba(47, 227, 164, 0.12);
+  --warn: #ffc65c;
+  --warn-bg: rgba(255, 198, 92, 0.12);
+  --info: #7fc8ff;
+  --info-bg: rgba(82, 210, 255, 0.12);
+  --danger: #ff6b8e;
+  --danger-bg: rgba(255, 80, 120, 0.13);
+  --muted-bg: rgba(190, 150, 255, 0.1);
+
+  --font-display: 'Unbounded', 'Arial Black', sans-serif;
+  --display-weight: 800;
+  --display-case: none;
+  --display-tracking: -0.025em;
+  --display-leading: 0.98;
+
+  --radius-sm: 10px;
+  --radius: 18px;
+  --radius-lg: 28px;
+  --border-w: 1px;
+  --card-border: 1px solid var(--line-soft);
+  --shadow-sm: 0 2px 10px -4px rgba(0, 0, 0, 0.6);
+  --shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--line-soft);
+  --shadow-lg: 0 30px 80px -24px rgba(143, 61, 255, 0.45), 0 0 0 1px var(--line);
+  --shadow-press: 0 0 0 1px var(--line);
+  --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+
+  --hero-sky: radial-gradient(120% 80% at 50% 110%, #3b1470 0%, #1a0b30 45%, #0b0613 75%);
+  --glow: 0 0 24px rgba(143, 61, 255, 0.55), 0 0 64px rgba(143, 61, 255, 0.25);
+  --glass: rgba(24, 13, 42, 0.72);
+  --backdrop: rgba(5, 2, 10, 0.7);
+  --grain-opacity: 0.05;
+}
