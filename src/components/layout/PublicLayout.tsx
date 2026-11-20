@@ -46,7 +46,8 @@ export function PublicLayout() {
       <a className="skip-link" href="#main">
         Saltar al contenido
       </a>
-      <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
+      {/* Sobre el hero del inicio (sin scroll) el texto va en claro para leerse sobre el atardecer. */}
+      <header className={`site-header ${scrolled ? 'is-scrolled' : ''} ${pathname === '/' && !scrolled ? 'is-over-hero' : ''}`}>
         <div className="container site-header__inner">
           <Link to="/" className="site-header__logo" aria-label="AVOLAR Smoke Shop, inicio">
             <Logo height={46} />

@@ -7,7 +7,6 @@ import { ProductCard } from '../../components/ProductCard';
 import { btnClass, Skeleton } from '../../components/ui';
 import { api } from '../../lib/api';
 import { useDocumentTitle, useSettings } from '../../hooks/data';
-import { money } from '../../lib/format';
 import type { GameConsole, Product } from '../../lib/types';
 
 export default function Home() {
@@ -21,7 +20,6 @@ export default function Home() {
     queryKey: ['public-products', 'home'],
     queryFn: () => api.get<{ products: Product[] }>('/public/products?pageSize=8').then((r) => r.products),
   });
-  const cheapest = consoles.data?.length ? Math.min(...consoles.data.map((c) => c.pricePerHour)) : null;
   const deposit = s?.depositPercent ?? 50;
 
   return (
@@ -56,25 +54,6 @@ export default function Home() {
                 <img src="/mascota.webp" alt="Mascota de AVOLAR Smoke Shop" width={820} height={764} className="mascot__img" />
                 <span className="mascot__shadow" aria-hidden />
               </div>
-              <div className="hero__stats">
-                <div>
-                  <strong>{consoles.data ? consoles.data.length : '–'}</strong>
-                  <span>Consolas</span>
-                </div>
-                <div>
-                  <strong>{deposit}%</strong>
-                  <span>Anticipo</span>
-                </div>
-                <div>
-                  <strong>0</strong>
-                  <span>Registros</span>
-                </div>
-              </div>
-              {cheapest != null && s && (
-                <p className="small" style={{ textAlign: 'center', fontWeight: 700 }}>
-                  Desde {money(cheapest, s.currency)} la hora
-                </p>
-              )}
             </div>
           </div>
         </div>
