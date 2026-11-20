@@ -14,6 +14,7 @@ export interface PaymentMethod {
   accountHolder: string | null;
   accountType: string | null;
   details: string | null;
+  logoUrl: string | null;
   isActive?: boolean;
   sortOrder?: number;
 }

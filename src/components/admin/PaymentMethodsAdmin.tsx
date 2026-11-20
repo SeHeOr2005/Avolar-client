@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { ArrowDown, ArrowUp, ImagePlus, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
 import { Button, ErrorState, Modal, Skeleton, Switch, TextInput } from '../ui';
 import { ApiError, api } from '../../lib/api';
 import { useToast } from '../../hooks/toast';
@@ -66,6 +66,32 @@ export function PaymentMethodsAdmin() {
     }
   }
 
+  /** Sube (o reemplaza) el logo oficial del medio de pago. */
+  async function uploadLogo(m: PaymentMethod, file: File | undefined) {
+    if (!file) return;
+    if (!['image/png', 'image/webp', 'image/jpeg', 'image/avif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      toast.error('Usa una imagen PNG, WEBP o JPG de hasta 5 MB (ideal PNG con fondo transparente).');
+      return;
+    }
+    const fd = new FormData();
+    fd.append('logo', file);
+    try {
+      done((await api.post<{ paymentMethods: PaymentMethod[] }>(`/admin/settings/payment-methods/${m.id}/logo`, fd)).paymentMethods);
+      toast.ok(`Logo de ${m.name} actualizado`);
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : 'No se pudo subir el logo.');
+    }
+  }
+
+  async function removeLogo(m: PaymentMethod) {
+    try {
+      done((await api.del<{ paymentMethods: PaymentMethod[] }>(`/admin/settings/payment-methods/${m.id}/logo`)).paymentMethods);
+      toast.ok('Logo eliminado');
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : 'No se pudo quitar el logo.');
+    }
+  }
+
   /** Reordena intercambiando posiciones y renumerando 0..n. */
   async function move(idx: number, dir: -1 | 1) {
     const list = [...(q.data ?? [])];
@@ -102,7 +128,10 @@ export function PaymentMethodsAdmin() {
           Agregar
         </Button>
       </div>
-      <p className="small muted">El cliente los ve al reservar y en su ticket, en este orden. El primero aparece como recomendado.</p>
+      <p className="small muted">
+        El cliente los ve al reservar y en su ticket, en este orden. El primero aparece como recomendado. Con el botón de imagen
+        sube el <strong>logo oficial</strong> de cada uno (PNG con fondo transparente, mínimo 48×48 px).
+      </p>
       {q.isLoading ? (
         <Skeleton h={80} />
       ) : q.isError ? (
@@ -114,7 +143,11 @@ export function PaymentMethodsAdmin() {
           {list.map((m, i) => (
             <li key={m.id} style={m.isActive ? undefined : { opacity: 0.55 }}>
               <span className="row" style={{ '--gap': '10px', minWidth: 0 } as React.CSSProperties}>
-                <Wallet size={18} aria-hidden style={{ color: 'var(--brand)', flex: 'none' }} />
+                {m.logoUrl ? (
+                  <img src={m.logoUrl} alt="" width={36} height={36} style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 8, background: '#fff', flex: 'none' }} />
+                ) : (
+                  <Wallet size={18} aria-hidden style={{ color: 'var(--brand)', flex: 'none' }} />
+                )}
                 <span className="stack" style={{ '--gap': '0', minWidth: 0 } as React.CSSProperties}>
                   <strong>
                     {m.name} {!m.isActive && <span className="tiny muted">(oculto)</span>}
@@ -123,6 +156,15 @@ export function PaymentMethodsAdmin() {
                 </span>
               </span>
               <span className="row" style={{ '--gap': '2px', flexWrap: 'nowrap' } as React.CSSProperties}>
+                <label className="btn btn--ghost btn--icon btn--sm" title={m.logoUrl ? 'Cambiar logo' : 'Subir logo'}>
+                  <input type="file" accept="image/png,image/webp,image/jpeg,image/avif" className="sr-only" aria-label={`Logo de ${m.name}`} onChange={(e) => { void uploadLogo(m, e.target.files?.[0]); e.target.value = ''; }} />
+                  <ImagePlus aria-hidden />
+                </label>
+                {m.logoUrl && (
+                  <Button size="sm" variant="ghost" className="btn--sm" onClick={() => removeLogo(m)}>
+                    Quitar logo
+                  </Button>
+                )}
                 <Button size="sm" variant="ghost" className="btn--icon" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}>
                   <ArrowUp />
                 </Button>

@@ -20,9 +20,15 @@ export function PaymentMethods({ methods, compact }: { methods: PaymentMethod[];
     <ul className={`paymethods ${compact ? 'paymethods--compact' : ''}`}>
       {methods.map((m, i) => (
         <li key={m.id} className="paymethod">
-          <span className="paymethod__icon" aria-hidden>
-            <Wallet />
-          </span>
+          {m.logoUrl ? (
+            <span className="paymethod__logo">
+              <img src={m.logoUrl} alt={m.name} loading="lazy" />
+            </span>
+          ) : (
+            <span className="paymethod__icon" aria-hidden>
+              <Wallet />
+            </span>
+          )}
           <div className="paymethod__body">
             <div className="paymethod__name">
               {m.name}

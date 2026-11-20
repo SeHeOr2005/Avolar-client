@@ -177,12 +177,17 @@ export function Modal({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // Se guarda la última versión de onClose en una ref: así el efecto de abajo corre SOLO al abrir
+  // el modal. Si dependiera de onClose (que suele ser una función nueva en cada render), cada tecla
+  // escrita volvería a ejecutarlo y el foco saltaría al primer campo.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     const first = ref.current?.querySelector<HTMLElement>('input, select, textarea, button:not([data-close])');
     (first ?? ref.current)?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
       if (e.key === 'Tab' && ref.current) {
         const f = ref.current.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input, select, textarea');
         if (!f.length) return;
@@ -205,7 +210,7 @@ export function Modal({
       document.body.style.overflow = overflow;
       prev?.focus?.();
     };
-  }, [onClose]);
+  }, []);
 
   return createPortal(
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

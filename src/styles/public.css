@@ -1591,3 +1591,25 @@
   display: grid;
   gap: 10px;
 }
+/* Logo oficial del medio de pago: siempre sobre blanco para respetar sus colores de marca. */
+.paymethod__logo {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(42, 14, 44, 0.12);
+}
+.paymethod__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+.paymethods--compact .paymethod__logo {
+  width: 34px;
+  height: 34px;
+}
