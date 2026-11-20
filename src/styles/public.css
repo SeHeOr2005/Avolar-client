@@ -158,44 +158,103 @@
   padding: 0 10px;
 }
 
-/* ═══════════ Menú móvil ═══════════ */
+/* ═══════════ Menú móvil ═══════════
+   Panel sólido bajo la cabecera: filas con ícono, texto legible y acciones al final. */
 .mobile-menu {
   position: fixed;
   inset: 74px 0 0 0;
   z-index: calc(var(--z-header) - 1);
   background: var(--bg);
-  padding: 24px var(--gutter) 40px;
+  border-top: 1px solid var(--line-soft);
+  padding: 16px var(--gutter) max(20px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 20px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .mobile-menu.is-open {
-  animation: fade-in 200ms ease-out;
-}
-:root[data-theme='day'] .mobile-menu {
-  background: var(--hero-sky);
-  color: #fff;
+  animation: fade-in 180ms ease-out;
 }
 .mobile-menu__nav {
   display: grid;
-  gap: 4px;
+  gap: 6px;
 }
 .mobile-menu__link {
-  font-size: clamp(2.4rem, 10vw, 3.6rem);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  padding: 0 14px 0 10px;
+  border-radius: 16px;
+  border: 1px solid transparent;
   text-decoration: none;
-  padding: 6px 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--ink);
   opacity: 0;
-  transform: translateY(10px);
-  animation: menu-in 360ms var(--ease-out) forwards;
-  animation-delay: calc(var(--i) * 45ms);
+  transform: translateY(6px);
+  animation: menu-in 260ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i) * 35ms);
+  transition: background-color 160ms ease, border-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu__link:active {
+  background: var(--muted-bg);
+}
+.mobile-menu__icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--muted-bg);
+  color: var(--ink-soft);
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.mobile-menu__icon svg {
+  width: 20px;
+  height: 20px;
+}
+.mobile-menu__label {
+  flex: 1;
+}
+.mobile-menu__chev {
+  width: 18px;
+  height: 18px;
+  color: var(--ink-faint);
 }
 .mobile-menu__link.active {
-  color: var(--accent-2);
+  background: var(--surface);
+  border-color: var(--line);
+}
+.mobile-menu__link.active .mobile-menu__icon {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+:root[data-theme='day'] .mobile-menu__link.active {
+  border-width: 2px;
+  box-shadow: var(--shadow-sm);
 }
 :root[data-theme='night'] .mobile-menu__link.active {
-  color: var(--accent);
-  text-shadow: 0 0 24px rgba(47, 227, 164, 0.6);
+  background: rgba(143, 61, 255, 0.14);
+  border-color: rgba(143, 61, 255, 0.45);
+}
+.mobile-menu__foot {
+  margin-top: auto;
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+  opacity: 0;
+  animation: menu-in 260ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i) * 35ms);
+}
+.mobile-menu__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 @keyframes menu-in {
   to {
@@ -203,12 +262,16 @@
     transform: none;
   }
 }
-.mobile-menu__foot {
-  padding-top: 24px;
+/* Con el menú abierto la cabecera es sólida (no transparente sobre el hero). */
+.site-header.is-menu-open {
+  background: var(--bg);
+  border-bottom-color: var(--line-soft);
 }
 
 .site-main {
   flex: 1;
+  /* La cinta inclinada del inicio sobresale a propósito: se recorta para no ensanchar la página. */
+  overflow-x: clip;
 }
 
 /* ═══════════ Botón flotante de WhatsApp ═══════════ */

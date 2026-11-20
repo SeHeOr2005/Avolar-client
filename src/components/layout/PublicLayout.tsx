@@ -1,16 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Camera as Instagram, Globe as Facebook, Menu, MessageCircle, Music2, X } from 'lucide-react';
+import {
+  CalendarSearch,
+  Camera as Instagram,
+  ChevronRight,
+  Gamepad2,
+  Globe as Facebook,
+  House,
+  Menu,
+  MessageCircle,
+  Music2,
+  Shirt,
+  Store,
+  X,
+} from 'lucide-react';
 import { Logo, ThemeToggle } from '../ui';
 import { useSettings } from '../../hooks/data';
 import { hhmm, WEEKDAYS, waLink } from '../../lib/format';
 
 const NAV = [
-  { to: '/', label: 'Inicio', end: true },
-  { to: '/reservar', label: 'Reservar consola' },
-  { to: '/catalogo', label: 'Catálogo' },
-  { to: '/tienda', label: 'La tienda' },
-  { to: '/contacto', label: 'Contacto' },
+  { to: '/', label: 'Inicio', end: true, icon: House },
+  { to: '/reservar', label: 'Reservar consola', icon: Gamepad2 },
+  { to: '/catalogo', label: 'Catálogo', icon: Shirt },
+  { to: '/tienda', label: 'La tienda', icon: Store },
+  { to: '/contacto', label: 'Contacto', icon: MessageCircle },
 ];
 
 export function PublicLayout() {
@@ -47,7 +60,9 @@ export function PublicLayout() {
         Saltar al contenido
       </a>
       {/* Sobre el hero del inicio (sin scroll) el texto va en claro para leerse sobre el atardecer. */}
-      <header className={`site-header ${scrolled ? 'is-scrolled' : ''} ${pathname === '/' && !scrolled ? 'is-over-hero' : ''}`}>
+      <header
+        className={`site-header ${scrolled ? 'is-scrolled' : ''} ${pathname === '/' && !scrolled && !open ? 'is-over-hero' : ''} ${open ? 'is-menu-open' : ''}`}
+      >
         <div className="container site-header__inner">
           <Link to="/" className="site-header__logo" aria-label="AVOLAR Smoke Shop, inicio">
             <Logo height={46} />
@@ -80,16 +95,29 @@ export function PublicLayout() {
       <div id="mobile-menu" className={`mobile-menu ${open ? 'is-open' : ''}`} hidden={!open}>
         <nav aria-label="Menú móvil" className="mobile-menu__nav">
           {NAV.map((n, i) => (
-            <NavLink key={n.to} to={n.to} end={n.end} className="mobile-menu__link display" style={{ '--i': i } as React.CSSProperties}>
-              {n.label}
+            <NavLink key={n.to} to={n.to} end={n.end} className="mobile-menu__link" style={{ '--i': i } as React.CSSProperties}>
+              <span className="mobile-menu__icon" aria-hidden>
+                <n.icon />
+              </span>
+              <span className="mobile-menu__label">{n.label}</span>
+              <ChevronRight className="mobile-menu__chev" aria-hidden />
             </NavLink>
           ))}
-          <NavLink to="/mi-reserva" className="mobile-menu__link display" style={{ '--i': NAV.length } as React.CSSProperties}>
-            Mi reserva
-          </NavLink>
         </nav>
-        <div className="mobile-menu__foot">
-          <ThemeToggle />
+        <div className="mobile-menu__foot" style={{ '--i': NAV.length } as React.CSSProperties}>
+          <Link to="/reservar" className="btn btn--primary btn--lg btn--block">
+            <Gamepad2 aria-hidden /> Reservar consola
+          </Link>
+          <div className="mobile-menu__row">
+            <Link to="/mi-reserva" className="btn btn--block">
+              <CalendarSearch aria-hidden /> Mi reserva
+            </Link>
+            {wa && (
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="btn btn--whatsapp btn--block">
+                <MessageCircle aria-hidden /> WhatsApp
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
