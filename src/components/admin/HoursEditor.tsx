@@ -1,4 +1,3 @@
-import { Switch } from '../ui';
 import { hhmm, hhmmToMin, WEEKDAYS } from '../../lib/format';
 import type { Hours } from '../../lib/types';
 
@@ -17,35 +16,50 @@ export function HoursEditor({ value, onChange }: { value: Hours[]; onChange: (v:
         const h = value.find((x) => x.weekday === wd)!;
         const invalid = h.isOpen && h.closeMinute <= h.openMinute;
         return (
-          <div key={wd} className="hours-row" style={invalid ? { outline: '2px solid var(--danger)' } : undefined}>
-            <strong className="small">{WEEKDAYS[wd]}</strong>
-            <Switch checked={h.isOpen} onChange={(v) => set(wd, { isOpen: v })} label={h.isOpen ? 'Abierto' : 'Cerrado'} />
-            <input
-              type="time"
-              className="input"
-              aria-label={`Apertura ${WEEKDAYS[wd]}`}
-              value={hhmm(h.openMinute)}
-              disabled={!h.isOpen}
-              step={900}
-              onChange={(e) => e.target.value && set(wd, { openMinute: hhmmToMin(e.target.value) })}
-            />
-            <input
-              type="time"
-              className="input"
-              aria-label={`Cierre ${WEEKDAYS[wd]}`}
-              value={h.closeMinute >= 1440 ? '23:59' : hhmm(h.closeMinute)}
-              disabled={!h.isOpen}
-              step={900}
-              onChange={(e) => {
-                if (!e.target.value) return;
-                const m = hhmmToMin(e.target.value);
-                set(wd, { closeMinute: m === 1439 ? 1440 : m });
-              }}
-            />
+          <div key={wd} className={`hours-row ${h.isOpen ? 'is-open' : ''} ${invalid ? 'is-invalid' : ''}`}>
+            <label className="hours-row__day">
+              <input type="checkbox" role="switch" checked={h.isOpen} onChange={(e) => set(wd, { isOpen: e.target.checked })} />
+              <span className="switch__track" aria-hidden />
+              <strong>{WEEKDAYS[wd]}</strong>
+            </label>
+            {h.isOpen ? (
+              <div className="hours-row__times">
+                <input
+                  type="time"
+                  className="input"
+                  aria-label={`Apertura ${WEEKDAYS[wd]}`}
+                  value={hhmm(h.openMinute)}
+                  step={900}
+                  onChange={(e) => e.target.value && set(wd, { openMinute: hhmmToMin(e.target.value) })}
+                />
+                <span className="muted small" aria-hidden>
+                  a
+                </span>
+                <input
+                  type="time"
+                  className="input"
+                  aria-label={`Cierre ${WEEKDAYS[wd]}`}
+                  value={h.closeMinute >= 1440 ? '23:59' : hhmm(h.closeMinute)}
+                  step={900}
+                  onChange={(e) => {
+                    if (!e.target.value) return;
+                    const m = hhmmToMin(e.target.value);
+                    set(wd, { closeMinute: m === 1439 ? 1440 : m });
+                  }}
+                />
+              </div>
+            ) : (
+              <span className="hours-row__closed">Cerrado</span>
+            )}
+            {invalid && (
+              <span className="field__error hours-row__err" role="alert">
+                El cierre debe ser después de la apertura.
+              </span>
+            )}
           </div>
         );
       })}
-      <p className="tiny muted">Para cerrar a medianoche usa 23:59. El horario no puede cruzar la medianoche.</p>
+      <p className="tiny muted">Activa los días que abres. Para cerrar a medianoche usa 23:59; el horario no puede cruzar la medianoche.</p>
     </div>
   );
 }

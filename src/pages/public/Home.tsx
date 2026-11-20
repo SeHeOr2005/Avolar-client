@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, CalendarCheck, Gamepad2, MessageCircle, Shirt, Sparkles, Wallet } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Gamepad2, MessageCircle, Shirt, Wallet } from 'lucide-react';
 import { HeroArt } from '../../components/HeroArt';
 import { ConsoleCard } from '../../components/ConsoleCard';
 import { ProductCard } from '../../components/ProductCard';
-import { btnClass, Logo, Skeleton } from '../../components/ui';
+import { btnClass, Skeleton } from '../../components/ui';
 import { api } from '../../lib/api';
 import { useDocumentTitle, useSettings } from '../../hooks/data';
 import { money } from '../../lib/format';
@@ -30,9 +30,6 @@ export default function Home() {
         <HeroArt />
         <div className="container hero__inner">
           <div>
-            <span className="hero__kicker reveal" style={{ '--d': 0 } as React.CSSProperties}>
-              <Sparkles size={14} aria-hidden /> Smoke shop · Gaming · Streetwear
-            </span>
             <h1 className="hero__title display reveal" style={{ '--d': 1 } as React.CSSProperties}>
               <span className="script">bienvenido a</span>
               Juega, viste
@@ -54,7 +51,11 @@ export default function Home() {
           </div>
           <div className="hero__badge reveal" style={{ '--d': 2 } as React.CSSProperties}>
             <div className="hero__badge-card">
-              <Logo height={140} />
+              {/* Mascota de AVOLAR (imagen aportada por la tienda: public/mascota.webp). */}
+              <div className="mascot">
+                <img src="/mascota.webp" alt="Mascota de AVOLAR Smoke Shop" width={820} height={764} className="mascot__img" />
+                <span className="mascot__shadow" aria-hidden />
+              </div>
               <div className="hero__stats">
                 <div>
                   <strong>{consoles.data ? consoles.data.length : '–'}</strong>

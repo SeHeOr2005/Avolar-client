@@ -13,7 +13,7 @@ npm run dev               # http://localhost:5173 (el API debe estar en http://l
 ```
 
 En desarrollo, Vite reenvía `/api` al backend, así que frontend y API comparten origen y las cookies de sesión funcionan sin configurar CORS.
-Producción: `npm run build` genera `dist/` (sitio estático). Configura el hosting para que todas las rutas sirvan `index.html` (SPA).
+Producción: se despliega en Vercel con [`vercel.json`](vercel.json), que reenvía `/api` al backend en Render y sirve `index.html` en todas las rutas. Guía completa en `Avolar-server/DESPLIEGUE.md`.
 
 | Variable | Obligatoria | Descripción |
 |---|---|---|

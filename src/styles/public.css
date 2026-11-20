@@ -1455,3 +1455,60 @@
   background: var(--brand);
   color: #fff;
 }
+
+/* ═══════════ Mascota flotante del hero ═══════════ */
+.mascot {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding-bottom: 18px;
+}
+.mascot__img {
+  width: min(100%, 340px);
+  height: auto;
+  animation: mascot-float 3.6s var(--ease-in-out) infinite;
+  filter: drop-shadow(0 6px 0 rgba(42, 14, 44, 0.18));
+  will-change: transform;
+}
+:root[data-theme='night'] .mascot__img {
+  filter: drop-shadow(0 0 22px rgba(143, 61, 255, 0.55));
+}
+/* Sombra en el "suelo": se achica y aclara cuando la mascota sube. */
+.mascot__shadow {
+  position: absolute;
+  bottom: 0;
+  width: 46%;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(42, 14, 44, 0.35), transparent);
+  animation: mascot-shadow 3.6s var(--ease-in-out) infinite;
+}
+:root[data-theme='night'] .mascot__shadow {
+  background: radial-gradient(closest-side, rgba(143, 61, 255, 0.55), transparent);
+}
+@keyframes mascot-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(1deg);
+  }
+}
+@keyframes mascot-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(0.78);
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot__img,
+  .mascot__shadow {
+    animation: none;
+  }
+}

@@ -435,29 +435,90 @@ a.stat {
   margin-inline: auto;
 }
 
-/* Editor de horarios */
+/* Editor de horarios: se adapta al ancho de su panel (container query), no al de la pantalla. */
 .hours-editor {
   display: grid;
   gap: 8px;
+  container-type: inline-size;
 }
 .hours-row {
   display: grid;
-  grid-template-columns: 120px auto 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: minmax(150px, 1fr) auto;
   align-items: center;
+  gap: 8px 16px;
+  min-height: 60px;
   padding: 8px 12px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  transition: background-color 160ms ease, border-color 160ms ease;
 }
-.hours-row .input {
+.hours-row.is-open {
+  background: var(--surface);
+  border-color: var(--line);
+}
+:root[data-theme='night'] .hours-row.is-open {
+  background: rgba(143, 61, 255, 0.08);
+  border-color: rgba(143, 61, 255, 0.35);
+}
+.hours-row.is-invalid {
+  border-color: var(--danger);
+}
+.hours-row__day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  min-width: 0;
+}
+.hours-row__day input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.hours-row__day input:checked + .switch__track {
+  background: var(--ok);
+}
+.hours-row__day input:checked + .switch__track::after {
+  transform: translateX(18px);
+  background: #fff;
+}
+.hours-row__day input:focus-visible + .switch__track {
+  box-shadow: var(--focus);
+}
+.hours-row__times {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+  width: min(100%, 300px);
+}
+.hours-row__times .input {
   min-height: 40px;
+  min-width: 0;
+  padding: 0 10px;
+  font-variant-numeric: tabular-nums;
 }
-@media (max-width: 560px) {
+.hours-row__closed {
+  justify-self: end;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+.hours-row__err {
+  grid-column: 1 / -1;
+}
+@container (max-width: 470px) {
   .hours-row {
     grid-template-columns: 1fr auto;
   }
-  .hours-row .input {
-    grid-column: span 1;
+  .hours-row__times {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    width: 100%;
   }
 }
 
