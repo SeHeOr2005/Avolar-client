@@ -8,6 +8,7 @@ import { CategoriesPage, ProductEdit, ProductsList } from './pages/admin/Product
 import SettingsPage from './pages/admin/Settings';
 import UsersPage from './pages/admin/Users';
 import Account from './pages/admin/Account';
+import SecurityPage from './pages/admin/Security';
 import './styles/admin.css';
 
 /** Si el usuario no ve el dashboard, entra a la primera sección que sí puede ver. */
@@ -32,6 +33,7 @@ export default function AdminRoutes() {
         <Route path="categorias" element={<RequirePerm perm="catalog.manage"><CategoriesPage /></RequirePerm>} />
         <Route path="configuracion" element={<RequirePerm perm="settings.manage"><SettingsPage /></RequirePerm>} />
         <Route path="usuarios" element={<RequirePerm perm="users.manage"><UsersPage /></RequirePerm>} />
+        <Route path="seguridad" element={<RequirePerm perm="security.view"><SecurityPage /></RequirePerm>} />
         <Route path="cuenta" element={<Account />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>

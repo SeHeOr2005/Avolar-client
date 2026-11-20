@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  ShieldCheck,
   Shirt,
   Tags,
   UserCog,
@@ -26,6 +27,7 @@ export const ADMIN_NAV = [
   { to: '/admin/categorias', label: 'Categorías', icon: Tags, perm: 'catalog.manage' },
   { to: '/admin/configuracion', label: 'Configuración', icon: Settings, perm: 'settings.manage' },
   { to: '/admin/usuarios', label: 'Usuarios y roles', icon: UserCog, perm: 'users.manage' },
+  { to: '/admin/seguridad', label: 'Seguridad', icon: ShieldCheck, perm: 'security.view' },
 ];
 
 export function AdminLayout() {
