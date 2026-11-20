@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   CalendarClock,
   ExternalLink,
@@ -15,7 +15,8 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/auth';
-import { Logo, ThemeToggle } from '../ui';
+import { Button, Logo, Modal, ThemeToggle } from '../ui';
+import { setLogoutReason, useIdleLogout } from '../../hooks/idle';
 
 export const ADMIN_NAV = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, perm: 'dashboard.view', end: true },
@@ -31,7 +32,23 @@ export function AdminLayout() {
   const { user, loading, logout, can } = useAuth();
   const [open, setOpen] = useState(false);
   const loc = useLocation();
+  const navigate = useNavigate();
   useEffect(() => setOpen(false), [loc.pathname]);
+
+  // Cierre automático tras 30 min sin actividad del usuario.
+  const onIdle = useCallback(() => {
+    setLogoutReason('idle');
+    void logout().then(() => navigate('/admin/login', { replace: true }));
+  }, [logout, navigate]);
+  const { remainingMs, stayActive } = useIdleLogout(onIdle, Boolean(user));
+
+  // Si el navegador restaura el panel desde su caché (botón Atrás tras cerrar sesión), se recarga
+  // para que la verificación de sesión decida qué mostrar y no quede contenido viejo a la vista.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => e.persisted && window.location.reload();
+    window.addEventListener('pageshow', onShow);
+    return () => window.removeEventListener('pageshow', onShow);
+  }, []);
 
   if (loading) {
     return (
@@ -96,6 +113,30 @@ export function AdminLayout() {
           <Outlet />
         </main>
       </div>
+      {remainingMs != null && (
+        <Modal
+          title="¿Sigues ahí?"
+          onClose={stayActive}
+          footer={
+            <>
+              <Button variant="ghost" onClick={onIdle}>
+                Cerrar sesión
+              </Button>
+              <Button variant="primary" onClick={stayActive}>
+                Seguir conectado
+              </Button>
+            </>
+          }
+        >
+          <p>
+            Por seguridad, tu sesión se cerrará en{' '}
+            <strong className="num" aria-live="polite">
+              {Math.floor(remainingMs / 60000)}:{String(Math.floor((remainingMs % 60000) / 1000)).padStart(2, '0')}
+            </strong>{' '}
+            por inactividad.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }

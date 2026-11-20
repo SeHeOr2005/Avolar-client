@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, setSessionExpiredHandler } from '../lib/api';
+import { clearIdleMarker } from './idle';
 import type { AuthUser } from '../lib/types';
 
 interface AuthState {
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionExpiredHandler(() => {
       setUser(null);
       qc.clear();
+      clearIdleMarker();
     });
   }, [reload, qc]);
 
@@ -54,10 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return r.user;
   };
 
+  /** Revoca la sesión en el servidor y borra del navegador todo dato del panel en memoria. */
   const logout = async () => {
     await api.post('/auth/logout').catch(() => {});
     setUser(null);
     qc.clear();
+    clearIdleMarker();
   };
 
   const can = (perm: string) => Boolean(user && (user.isSuperadmin || user.permissions.includes(perm)));

@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { clearLogoutReason, peekLogoutReason } from '../../hooks/idle';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { Button, Logo, TextInput, ThemeToggle } from '../../components/ui';
@@ -12,11 +13,14 @@ export default function Login() {
   useDocumentTitle('Acceso del equipo');
   const { user, login, loading } = useAuth();
   const nav = useNavigate();
-  const loc = useLocation() as { state?: { from?: string } };
+  const loc = useLocation() as { state?: { from?: string; reason?: string } };
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reason] = useState(() => peekLogoutReason() ?? loc.state?.reason ?? null);
+  // El aviso se muestra una sola vez: al recargar el login ya no aparece.
+  useEffect(() => clearLogoutReason(), []);
 
   if (!loading && user) return <Navigate to={loc.state?.from ?? '/admin'} replace />;
 
@@ -43,6 +47,11 @@ export default function Login() {
           <h1 style={{ fontSize: 'var(--text-lg)' }}>Panel de administración</h1>
           <p className="small muted">Acceso exclusivo para el equipo de la tienda.</p>
         </div>
+        {reason === 'idle' && (
+          <div className="alert alert--warn" role="status">
+            Cerramos tu sesión tras 30 minutos sin actividad. Vuelve a ingresar para continuar.
+          </div>
+        )}
         <TextInput label="Usuario o correo" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus />
         <TextInput
           label="Contraseña"
