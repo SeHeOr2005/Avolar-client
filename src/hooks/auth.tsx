@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { useQueryClient } from '@tanstack/react-query';
 import { api, setSessionExpiredHandler } from '../lib/api';
 import { clearIdleMarker } from './idle';
+import { answerOtherTabs, clearTab, isTabMarked, markTab, otherTabHasSession } from './tabSession';
 import type { AuthUser } from '../lib/types';
 
 interface AuthState {
@@ -21,6 +22,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
 
   const reload = useCallback(async () => {
+    // Pestaña nueva (se cerró la anterior o se abrió de cero): la sesión no se reutiliza,
+    // salvo que haya otra pestaña del panel abierta en este momento.
+    if (!isTabMarked()) {
+      if (await otherTabHasSession()) {
+        markTab();
+      } else {
+        // Solo en rutas del panel se avisa al servidor; en el sitio público basta con no usar la sesión.
+        if (window.location.pathname.startsWith('/admin')) await api.post('/auth/logout').catch(() => {});
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+    }
     try {
       const r = await api.get<{ user: AuthUser }>('/auth/me');
       setUser(r.user);
@@ -41,17 +55,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Mientras esta pestaña tenga la sesión, responde a pestañas nuevas del panel.
+  useEffect(() => (user ? answerOtherTabs() : undefined), [user]);
+
   useEffect(() => {
     void reload();
     setSessionExpiredHandler(() => {
       setUser(null);
       qc.clear();
       clearIdleMarker();
+      clearTab();
     });
   }, [reload, qc]);
 
   const login = async (username: string, password: string) => {
     const r = await api.post<{ user: AuthUser }>('/auth/login', { username, password });
+    markTab();
     setUser(r.user);
     return r.user;
   };
@@ -62,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     qc.clear();
     clearIdleMarker();
+    clearTab();
   };
 
   const can = (perm: string) => Boolean(user && (user.isSuperadmin || user.permissions.includes(perm)));
