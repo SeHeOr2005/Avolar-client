@@ -9,6 +9,9 @@ import SettingsPage from './pages/admin/Settings';
 import UsersPage from './pages/admin/Users';
 import Account from './pages/admin/Account';
 import SecurityPage from './pages/admin/Security';
+import PosPage from './pages/admin/Pos';
+import ShopInventoryPage from './pages/admin/ShopInventory';
+import ShopSalesPage from './pages/admin/ShopSales';
 import './styles/admin.css';
 
 /** Si el usuario no ve el dashboard, entra a la primera sección que sí puede ver. */
@@ -34,6 +37,9 @@ export default function AdminRoutes() {
         <Route path="configuracion" element={<RequirePerm perm="settings.manage"><SettingsPage /></RequirePerm>} />
         <Route path="usuarios" element={<RequirePerm perm="users.manage"><UsersPage /></RequirePerm>} />
         <Route path="seguridad" element={<RequirePerm perm="security.view"><SecurityPage /></RequirePerm>} />
+        <Route path="caja" element={<RequirePerm perm="pos.sell"><PosPage /></RequirePerm>} />
+        <Route path="inventario-tienda" element={<RequirePerm perm="pos.sell"><ShopInventoryPage /></RequirePerm>} />
+        <Route path="ventas-tienda" element={<RequirePerm perm="pos.reports"><ShopSalesPage /></RequirePerm>} />
         <Route path="cuenta" element={<Account />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>

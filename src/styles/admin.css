@@ -606,3 +606,264 @@ a.stat {
   width: 36px;
   height: 36px;
 }
+
+/* ═══════════ Caja (punto de venta) ═══════════ */
+.pos {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .pos {
+    grid-template-columns: 1fr;
+  }
+}
+.pos__right {
+  position: sticky;
+  top: 18px;
+}
+.pos-scan {
+  position: relative;
+}
+.pos-scan__icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  color: var(--brand);
+  pointer-events: none;
+}
+.pos-scan__input {
+  min-height: 64px;
+  padding-left: 54px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.pos-results {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-soft);
+  background: var(--surface-2);
+  max-height: 320px;
+  overflow: auto;
+}
+.pos-results button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.pos-results button:hover:not(:disabled),
+.pos-results button:focus-visible {
+  background: var(--muted-bg);
+}
+.pos-results button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pos-cart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.pos-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'info info del'
+    'qty total total';
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+  animation: fade-in 180ms ease-out;
+}
+.pos-line__info {
+  grid-area: info;
+}
+.pos-line .pos-qty {
+  grid-area: qty;
+}
+.pos-line__total {
+  grid-area: total;
+  justify-self: end;
+}
+.pos-line > .btn--ghost {
+  grid-area: del;
+}
+.pos-line__info {
+  display: grid;
+  min-width: 0;
+}
+
+.pos-line__total {
+  min-width: 90px;
+}
+.pos-qty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pos-qty .input {
+  width: 58px;
+  min-height: 36px;
+  padding: 0 6px;
+  text-align: center;
+}
+
+.pos-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 48px 12px;
+  text-align: center;
+  color: var(--ink-soft);
+  border: 2px dashed var(--line-soft);
+  border-radius: var(--radius-lg);
+}
+.pos-empty svg {
+  width: 40px;
+  height: 40px;
+  color: var(--ink-faint);
+}
+.pos-total {
+  display: grid;
+  gap: 2px;
+}
+.pos-total strong {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 2.8rem;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-theme='night'] .pos-total strong {
+  font-size: 2rem;
+}
+.pos-methods {
+  display: grid;
+  gap: 8px;
+}
+.pos-methods .chip {
+  justify-content: flex-start;
+  min-height: 48px;
+}
+.pos-change {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--ok);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etiquetas con código de barras (vista previa en pantalla) */
+.label-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+  max-height: 340px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: var(--radius);
+  background: #fff;
+}
+.shop-label {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px;
+  border: 1px dashed #bbb;
+  border-radius: 6px;
+  color: #000;
+  background: #fff;
+  break-inside: avoid;
+}
+.shop-label__name {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shop-label svg {
+  max-width: 100%;
+  height: auto;
+}
+.shop-label__price {
+  font-size: 14px;
+}
+
+/* Ticket de venta: solo visible al imprimir */
+.print-ticket {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .print-ticket,
+  .print-ticket *,
+  .label-sheet,
+  .label-sheet * {
+    visibility: visible !important;
+  }
+  body::before {
+    display: none;
+  }
+  .modal-backdrop {
+    position: static;
+    background: none;
+    padding: 0;
+  }
+  .modal {
+    box-shadow: none;
+    border: 0;
+    max-height: none;
+    overflow: visible;
+    animation: none;
+  }
+  .print-ticket {
+    display: block;
+    position: fixed;
+    inset: 0 auto auto 0;
+    width: 72mm;
+    padding: 2mm;
+    font: 12px/1.35 ui-monospace, Consolas, monospace;
+    color: #000;
+    background: #fff;
+  }
+  .print-ticket p {
+    margin: 0 0 6px;
+  }
+  .print-ticket table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0;
+  }
+  .label-sheet {
+    position: fixed;
+    inset: 0;
+    max-height: none;
+    overflow: visible;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4mm;
+    padding: 6mm;
+  }
+}

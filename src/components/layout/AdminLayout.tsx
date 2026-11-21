@@ -7,6 +7,9 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Boxes,
+  Receipt,
+  ScanBarcode,
   Settings,
   ShieldCheck,
   Shirt,
@@ -21,10 +24,13 @@ import { setLogoutReason, useIdleLogout } from '../../hooks/idle';
 
 export const ADMIN_NAV = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, perm: 'dashboard.view', end: true },
+  { to: '/admin/caja', label: 'Caja', icon: ScanBarcode, perm: 'pos.sell' },
   { to: '/admin/reservas', label: 'Reservas', icon: CalendarClock, perm: 'reservations.view' },
   { to: '/admin/consolas', label: 'Consolas', icon: Gamepad2, perm: 'consoles.manage' },
   { to: '/admin/productos', label: 'Productos', icon: Shirt, perm: 'catalog.manage' },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags, perm: 'catalog.manage' },
+  { to: '/admin/inventario-tienda', label: 'Inventario tienda', icon: Boxes, perm: 'pos.sell' },
+  { to: '/admin/ventas-tienda', label: 'Ventas tienda', icon: Receipt, perm: 'pos.reports' },
   { to: '/admin/configuracion', label: 'Configuración', icon: Settings, perm: 'settings.manage' },
   { to: '/admin/usuarios', label: 'Usuarios y roles', icon: UserCog, perm: 'users.manage' },
   { to: '/admin/seguridad', label: 'Seguridad', icon: ShieldCheck, perm: 'security.view' },
