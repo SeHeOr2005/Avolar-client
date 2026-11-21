@@ -9,6 +9,7 @@ import SettingsPage from './pages/admin/Settings';
 import UsersPage from './pages/admin/Users';
 import Account from './pages/admin/Account';
 import SecurityPage from './pages/admin/Security';
+import ActivityPage from './pages/admin/Activity';
 import PosPage from './pages/admin/Pos';
 import ShopInventoryPage from './pages/admin/ShopInventory';
 import ShopSalesPage from './pages/admin/ShopSales';
@@ -39,6 +40,7 @@ export default function AdminRoutes() {
         <Route path="configuracion" element={<RequirePerm perm="settings.manage"><SettingsPage /></RequirePerm>} />
         <Route path="usuarios" element={<RequirePerm perm="users.manage"><UsersPage /></RequirePerm>} />
         <Route path="seguridad" element={<RequirePerm perm="security.view"><SecurityPage /></RequirePerm>} />
+        <Route path="actividad" element={<RequirePerm perm="audit.view"><ActivityPage /></RequirePerm>} />
         <Route path="caja" element={<RequirePerm perm="pos.sell"><PosPage /></RequirePerm>} />
         <Route path="inventario-tienda" element={<RequirePerm perm="pos.sell"><ShopInventoryPage /></RequirePerm>} />
         <Route path="ventas-tienda" element={<RequirePerm perm="pos.reports"><ShopSalesPage /></RequirePerm>} />

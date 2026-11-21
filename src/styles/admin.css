@@ -890,3 +890,66 @@ a.stat {
   border-color: var(--brand);
   background: var(--muted-bg);
 }
+
+/* Registro de actividad del equipo */
+.filterbar.activity-filters {
+  grid-template-columns: minmax(200px, 2fr) repeat(2, minmax(150px, 1fr)) repeat(2, minmax(130px, 0.8fr)) auto;
+}
+@media (max-width: 1100px) {
+  .filterbar.activity-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filterbar.activity-filters > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.activity__item {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.activity__item:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+.activity__time {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  padding-top: 2px;
+  white-space: nowrap;
+}
+.activity-filters > .btn {
+  justify-self: start;
+}
+.activity__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.activity__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+.activity__summary {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.activity__changes summary {
+  cursor: pointer;
+  color: var(--brand);
+  width: fit-content;
+}
+.activity__changes .table {
+  margin-top: 6px;
+  font-size: 0.85rem;
+}

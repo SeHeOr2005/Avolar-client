@@ -4,6 +4,7 @@ import {
   CalendarClock,
   ExternalLink,
   Gamepad2,
+  History,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -33,6 +34,7 @@ export const ADMIN_NAV = [
   { to: '/admin/ventas-tienda', label: 'Ventas tienda', icon: Receipt, perm: 'pos.reports' },
   { to: '/admin/configuracion', label: 'Configuración', icon: Settings, perm: 'settings.manage' },
   { to: '/admin/usuarios', label: 'Usuarios y roles', icon: UserCog, perm: 'users.manage' },
+  { to: '/admin/actividad', label: 'Actividad', icon: History, perm: 'audit.view' },
   { to: '/admin/seguridad', label: 'Seguridad', icon: ShieldCheck, perm: 'security.view' },
 ];
 
