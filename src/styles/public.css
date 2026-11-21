@@ -1715,3 +1715,93 @@
   padding: 8px 12px;
   border-radius: 999px;
 }
+
+/* ═══════════ Páginas legales ═══════════ */
+.legal {
+  max-width: 860px;
+}
+.legal__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.legal__nav a {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--ink-soft);
+}
+.legal__nav a.active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: transparent;
+}
+:root[data-theme="night"] .legal__nav a.active {
+  background: var(--brand);
+  color: #fff;
+}
+.legal__body {
+  padding: clamp(20px, 4vw, 40px);
+  line-height: 1.7;
+}
+.legal__body h2 {
+  font-size: var(--text-md);
+  margin: 28px 0 10px;
+}
+.legal__body h2:first-child {
+  margin-top: 0;
+}
+.legal__body ul {
+  padding-left: 1.2em;
+  margin: 8px 0;
+  display: grid;
+  gap: 6px;
+}
+.legal__body p {
+  margin: 8px 0;
+}
+.legal__body a {
+  color: var(--brand);
+  font-weight: 700;
+}
+:root[data-theme="night"] .legal__body a {
+  color: var(--accent);
+}
+
+/* Pie: enlaces legales */
+.site-footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+.site-footer__legal a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Casilla de aceptación al reservar */
+.consent {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+}
+.consent__check {
+  align-items: flex-start;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.consent__check input {
+  flex: none;
+  margin-top: 2px;
+}
+.consent__check input[aria-invalid="true"] {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}

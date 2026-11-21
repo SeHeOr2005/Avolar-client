@@ -103,6 +103,7 @@ export default function BookConsole() {
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [hp, setHp] = useState('');
+  const [accepted, setAccepted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -113,6 +114,7 @@ export default function BookConsole() {
     const errs: Record<string, string> = {};
     if (name.trim().length < 2) errs.customerName = 'Escribe tu nombre';
     if (phone.replace(/\D/g, '').length < 7) errs.customerPhone = 'Ingresa un teléfono válido';
+    if (!accepted) errs.acceptTerms = 'Debes aceptar para poder reservar';
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSubmitting(true);
@@ -126,6 +128,7 @@ export default function BookConsole() {
         customerName: name,
         customerPhone: phone,
         customerNotes: notes || null,
+        acceptTerms: accepted,
         website: hp,
       });
       rememberReservation(r.reservation.code, phone);
@@ -362,6 +365,36 @@ export default function BookConsole() {
                   Sitio web
                   <input tabIndex={-1} autoComplete="off" value={hp} onChange={(e) => setHp(e.target.value)} />
                 </label>
+              </div>
+              <div className="consent">
+                <label className="check consent__check">
+                  <input
+                    type="checkbox"
+                    checked={accepted}
+                    onChange={(e) => setAccepted(e.target.checked)}
+                    aria-invalid={errors.acceptTerms ? true : undefined}
+                    aria-describedby={errors.acceptTerms ? 'consent-err' : undefined}
+                  />
+                  <span>
+                    Acepto los{' '}
+                    <a href="/terminos" target="_blank" rel="noopener noreferrer" className="link">
+                      Términos y condiciones
+                    </a>{' '}
+                    y autorizo el tratamiento de mis datos personales según la{' '}
+                    <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="link">
+                      Política de tratamiento de datos
+                    </a>
+                    .
+                  </span>
+                </label>
+                {errors.acceptTerms && (
+                  <span className="field__error" id="consent-err" role="alert">
+                    {errors.acceptTerms}
+                  </span>
+                )}
+                <p className="tiny muted">
+                  Si cancelas con al menos {s.cancellationNoticeHours} h de anticipación puedes reprogramar o pedir la devolución del anticipo.
+                </p>
               </div>
               {formError && (
                 <div className="alert alert--danger" role="alert">

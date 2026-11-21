@@ -22,6 +22,9 @@ const Catalog = lazy(() => import('./pages/public/Catalog'));
 const ProductDetail = lazy(() => import('./pages/public/ProductDetail'));
 const StoreInfo = lazy(() => import('./pages/public/StoreInfo').then((m) => ({ default: m.StoreInfo })));
 const Contact = lazy(() => import('./pages/public/StoreInfo').then((m) => ({ default: m.Contact })));
+const Terms = lazy(() => import('./pages/public/Legal').then((m) => ({ default: m.Terms })));
+const Privacy = lazy(() => import('./pages/public/Legal').then((m) => ({ default: m.Privacy })));
+const CookiesPage = lazy(() => import('./pages/public/Legal').then((m) => ({ default: m.Cookies })));
 const AdminRoutes = lazy(() => import('./AdminRoutes'));
 const Login = lazy(() => import('./pages/admin/Login'));
 
@@ -76,6 +79,9 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="catalogo/:slug" element={<ProductDetail />} />
                     <Route path="tienda" element={<StoreInfo />} />
                     <Route path="contacto" element={<Contact />} />
+                    <Route path="terminos" element={<Terms />} />
+                    <Route path="privacidad" element={<Privacy />} />
+                    <Route path="cookies" element={<CookiesPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>
                   <Route path="admin/login" element={<Login />} />

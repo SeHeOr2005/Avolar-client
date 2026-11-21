@@ -41,7 +41,7 @@ interface Dash {
   revenueSeries: { date: string; label: string; revenue: number }[];
   upcoming: { id: string; code: string; customerName: string; console: { name: string }; dateLabel: string; startTime: string; endTime: string; status: string; statusLabel: string }[];
   lowStock: { variantId: string; productId: string; productName: string; size: string; color: string | null; stock: number }[];
-  setup: { hasWhatsapp: boolean; hasHours: boolean; hasPaymentInstructions: boolean; hasConsoles: boolean; hasProducts: boolean };
+  setup: { hasWhatsapp: boolean; hasHours: boolean; hasPaymentInstructions: boolean; hasLegal: boolean; hasConsoles: boolean; hasProducts: boolean };
 }
 
 export default function Dashboard() {
@@ -75,6 +75,7 @@ export default function Dashboard() {
     !d.setup.hasWhatsapp && { label: 'Configura el número de WhatsApp', to: '/admin/configuracion', perm: 'settings.manage' },
     !d.setup.hasHours && { label: 'Publica el horario de atención', to: '/admin/configuracion', perm: 'settings.manage' },
     !d.setup.hasPaymentInstructions && { label: 'Agrega las instrucciones para el depósito', to: '/admin/configuracion', perm: 'settings.manage' },
+    !d.setup.hasLegal && { label: 'Completa la razón social y el NIT (datos legales)', to: '/admin/configuracion', perm: 'settings.manage' },
     !d.setup.hasConsoles && { label: 'Registra la primera consola', to: '/admin/consolas', perm: 'consoles.manage' },
     !d.setup.hasProducts && { label: 'Publica productos en el catálogo', to: '/admin/productos', perm: 'catalog.manage' },
   ].filter(Boolean) as { label: string; to: string; perm: string }[];

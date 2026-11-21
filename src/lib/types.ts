@@ -41,6 +41,10 @@ export interface PublicSettings {
   paymentHoldMinutes: number;
   reservationsEnabled: boolean;
   lowStockThreshold: number;
+  legalName: string | null;
+  taxId: string | null;
+  cancellationNoticeHours: number;
+  legalVersion: string;
   paymentMethods: PaymentMethod[];
   hours: Hours[];
 }

@@ -208,6 +208,8 @@ interface Detail extends Row {
   allowedTransitions: { status: string; label: string }[];
   holdExpiresAt: string | null;
   paymentSentAt: string | null;
+  termsAcceptedAt: string | null;
+  termsVersion: string | null;
   confirmedAt: string | null;
   cancelledAt: string | null;
   createdAt: string;
@@ -347,6 +349,10 @@ export function ReservationDetail() {
                   <dd>{dateTime(r.paymentSentAt)}</dd>
                 </div>
               )}
+              <div>
+                <dt>Términos y datos</dt>
+                <dd>{r.termsAcceptedAt ? `Aceptados ${dateTime(r.termsAcceptedAt)} · v${r.termsVersion}` : 'Sin registro (reserva anterior)'}</dd>
+              </div>
             </dl>
             {r.customerNotes && (
               <div className="instructions">

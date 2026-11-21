@@ -66,6 +66,9 @@ export default function SettingsPage() {
       lowStockThreshold: Number(f!.lowStockThreshold),
       paymentInstructions: str('paymentInstructions') || null,
       reservationsEnabled: Boolean(f!.reservationsEnabled),
+      legalName: str('legalName') || null,
+      taxId: str('taxId') || null,
+      cancellationNoticeHours: Number(f!.cancellationNoticeHours),
     };
     try {
       const r = await api.put<{ settings: S }>('/admin/settings', body);
@@ -163,6 +166,32 @@ export default function SettingsPage() {
                 ))}
               </Select>
             </div>
+          </section>
+          <section className="card panel">
+            <h2 className="panel__title">Datos legales</h2>
+            <p className="small muted">
+              Aparecen en los{' '}
+              <a className="link" href="/terminos" target="_blank" rel="noopener noreferrer">
+                Términos y condiciones
+              </a>{' '}
+              y en la{' '}
+              <a className="link" href="/privacidad" target="_blank" rel="noopener noreferrer">
+                Política de datos
+              </a>{' '}
+              como responsable del tratamiento.
+            </p>
+            <div className="grid-2">
+              <TextInput label="Razón social o nombre del titular" {...bind('legalName')} maxLength={160} hint="Ej.: Avolar S.A.S. o el nombre de la persona natural." />
+              <TextInput label="NIT o cédula" {...bind('taxId')} maxLength={30} placeholder="900.123.456-7" />
+            </div>
+            <TextInput
+              label="Aviso mínimo para cancelar sin perder el anticipo (horas)"
+              type="number"
+              min={0}
+              max={168}
+              {...bind('cancellationNoticeHours')}
+              hint="Se usa en los Términos y al reservar."
+            />
           </section>
           <div>
             <Button type="submit" variant="primary" size="lg" loading={saving}>

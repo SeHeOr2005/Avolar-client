@@ -204,11 +204,17 @@ export function PublicLayout() {
         </div>
         <div className="container site-footer__base">
           <span>
-            © {new Date().getFullYear()} {s?.businessName ?? 'AVOLAR Smoke Shop'}. Venta solo a mayores de edad.
+            © {new Date().getFullYear()} {s?.legalName || s?.businessName || 'AVOLAR Smoke Shop'}
+            {s?.taxId ? ` · NIT ${s.taxId}` : ''}. Venta de productos para fumadores solo a mayores de 18 años.
           </span>
-          <Link to="/admin/login" className="muted">
-            Acceso del equipo
-          </Link>
+          <nav className="site-footer__legal" aria-label="Legal">
+            <Link to="/terminos">Términos y condiciones</Link>
+            <Link to="/privacidad">Tratamiento de datos</Link>
+            <Link to="/cookies">Cookies</Link>
+            <Link to="/admin/login" className="muted">
+              Acceso del equipo
+            </Link>
+          </nav>
         </div>
       </footer>
     </>
