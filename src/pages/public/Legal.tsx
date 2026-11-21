@@ -13,8 +13,8 @@ import { useDocumentTitle, useSettings } from '../../hooks/data';
 import { duration } from '../../lib/format';
 import type { PublicSettings } from '../../lib/types';
 
-export const LEGAL_VERSION = '2026-11-24';
-const VERSION_LABEL = '24 de noviembre de 2026';
+export const LEGAL_VERSION = '2026-11-25';
+const VERSION_LABEL = '25 de noviembre de 2026';
 
 function LegalShell({ title, intro, children }: { title: string; intro: string; children: (s: PublicSettings) => ReactNode }) {
   useDocumentTitle(title);
@@ -104,7 +104,7 @@ export function Terms() {
             <li>Eliges consola, fecha y horario según la disponibilidad que muestra el sitio. El precio total se calcula por tiempo de uso.</li>
             <li>
               Para apartar el horario debes pagar un <strong>anticipo del {s.depositPercent} %</strong> del total por alguno de los medios de pago
-              publicados y enviar el comprobante por WhatsApp. El saldo se paga en la tienda.
+              publicados y subir el comprobante en tu reserva (o enviarlo por WhatsApp). El saldo se paga en la tienda.
             </li>
             <li>
               La reserva queda <strong>pendiente de pago</strong> al crearla y solo se considera <strong>confirmada</strong> cuando la tienda
@@ -229,8 +229,12 @@ export function Privacy() {
               registros de seguridad del sitio. No usamos la IP para rastrearte ni para publicidad.
             </li>
             <li>
-              <strong>No recogemos</strong> datos sensibles, datos de tarjetas ni claves bancarias. Los comprobantes de pago los envías por
-              WhatsApp y se usan solo para verificar tu anticipo.
+              <strong>Comprobante de pago:</strong> si lo subes en el sitio, guardamos la foto o el PDF que envías. Puede incluir tu nombre, el
+              medio de pago y el valor. Se usa solo para verificar tu anticipo, se guarda en un espacio privado al que solo accede el equipo de
+              la tienda y se elimina automáticamente a los 12 meses. Si prefieres, puedes enviarlo por WhatsApp.
+            </li>
+            <li>
+              <strong>No recogemos</strong> datos sensibles, datos de tarjetas ni claves bancarias.
             </li>
           </ul>
 
@@ -296,6 +300,7 @@ export function Privacy() {
               La dirección IP desde la que aceptaste esta política, <strong>12 meses</strong>. Después se elimina automáticamente y solo
               conservamos la fecha, la hora y la versión que aceptaste.
             </li>
+            <li>Los comprobantes de pago que subas, 12 meses. Después se eliminan automáticamente.</li>
             <li>Los registros de seguridad, hasta 90 días.</li>
             <li>Cuando ya no sean necesarios, los eliminamos o anonimizamos.</li>
           </ul>

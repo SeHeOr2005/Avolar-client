@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CalendarSearch, MessageCircle, Search } from 'lucide-react';
 import { PageTitle } from '../../components/layout/AdminLayout';
+import { ReceiptsPanel } from '../../components/admin/ReceiptsPanel';
 import { Button, Empty, ErrorState, Modal, Skeleton, StatusBadge, TextArea, TextInput, btnClass } from '../../components/ui';
 import { ApiError, api, qs } from '../../lib/api';
 import { dateTime, duration, money, STATUS_LABEL } from '../../lib/format';
@@ -201,6 +202,7 @@ export function ReservationsList() {
 }
 
 interface Detail extends Row {
+  receiptCount: number;
   customerNotes: string | null;
   adminNotes: string | null;
   pricePerHour: number;
@@ -398,6 +400,7 @@ export function ReservationDetail() {
         </div>
 
         <div className="stack">
+          <ReceiptsPanel reservationId={r.id} count={r.receiptCount ?? 0} />
           {manage && (
             <section className="card panel">
               <h2 className="panel__title">Acciones</h2>

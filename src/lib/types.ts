@@ -95,6 +95,7 @@ export interface Availability {
 
 export interface PublicReservation {
   code: string;
+  receiptCount: number;
   status: ReservationStatus;
   statusLabel: string;
   customerName: string;

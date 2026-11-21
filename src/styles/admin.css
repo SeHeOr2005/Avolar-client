@@ -568,3 +568,41 @@ a.stat {
   height: 18px;
   flex: none;
 }
+
+/* Comprobantes de pago en el detalle de la reserva */
+.receipts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.receipt-tile {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+.receipt-tile__media {
+  display: block;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+  border: var(--card-border);
+  background: var(--surface-sunk);
+}
+.receipt-tile__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.receipt-tile__pdf {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.receipt-tile__pdf svg {
+  width: 36px;
+  height: 36px;
+}

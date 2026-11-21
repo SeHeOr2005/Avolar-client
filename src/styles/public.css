@@ -1805,3 +1805,30 @@
   outline: 2px solid var(--danger);
   outline-offset: 2px;
 }
+
+/* Subida del comprobante en el ticket */
+.receipt-upload {
+  display: grid;
+  gap: 10px;
+}
+.receipt-upload .btn {
+  cursor: pointer;
+}
+.receipt-upload .btn.is-busy {
+  opacity: 0.7;
+  cursor: progress;
+}
+.receipt-upload__done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--ok);
+}
+.receipt-upload__done svg {
+  width: 20px;
+  height: 20px;
+}
+.receipt-upload label:focus-within {
+  box-shadow: var(--focus);
+}

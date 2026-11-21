@@ -9,6 +9,7 @@ import { useToast } from '../../hooks/toast';
 import type { PublicReservation } from '../../lib/types';
 import { recallReservation, rememberReservation } from './reservationMemory';
 import { PaymentMethods } from '../../components/PaymentMethods';
+import { ReceiptUpload } from '../../components/ReceiptUpload';
 
 /** Página de confirmación tras reservar: código, instrucciones de depósito y botón de WhatsApp. */
 export default function ReservationTicket() {
@@ -84,7 +85,7 @@ function Ticket({
       <header className="page-head">
         <p className="eyebrow">{fresh ? '¡Reserva creada!' : 'Tu reserva'}</p>
         <h1 className="display">{fresh ? 'Ya casi es tuya' : `Hola, ${r.customerName.split(' ')[0]}`}</h1>
-        {fresh && <p>Guarda tu número de reserva. Para confirmarla, haz el depósito del anticipo y envíanos el comprobante por WhatsApp.</p>}
+        {fresh && <p>Guarda tu número de reserva. Para confirmarla, haz el depósito del anticipo y sube aquí el comprobante (o envíalo por WhatsApp).</p>}
       </header>
 
       <article className="card ticket">
@@ -163,30 +164,26 @@ function Ticket({
                   </p>
                 )}
               </div>
-              {r.whatsappUrl ? (
-                <a href={r.whatsappUrl} target="_blank" rel="noopener noreferrer" className={btnClass('whatsapp', 'lg', true)} onClick={markSent}>
-                  <MessageCircle aria-hidden /> Enviar comprobante por WhatsApp
+              <ReceiptUpload r={r} phone={phone} onUpdate={onUpdate} />
+              {r.whatsappUrl && (
+                <a href={r.whatsappUrl} target="_blank" rel="noopener noreferrer" className={btnClass('whatsapp', 'md', true)} onClick={markSent}>
+                  <MessageCircle aria-hidden /> O envíalo por WhatsApp
                 </a>
-              ) : (
-                <div className="alert alert--warn">La tienda aún no configuró su número de WhatsApp. Guarda tu código y vuelve más tarde.</div>
               )}
             </>
           )}
           {r.status === 'PAYMENT_REVIEW' && (
-            <div className="alert">
-              <TicketCheck aria-hidden />
-              <span>
-                Recibimos tu aviso de pago. Estamos verificando el comprobante y te confirmaremos pronto. Si aún no lo enviaste,{' '}
-                {r.whatsappUrl ? (
-                  <a className="link" href={r.whatsappUrl} target="_blank" rel="noopener noreferrer">
-                    envíalo por WhatsApp
-                  </a>
-                ) : (
-                  'escríbenos'
-                )}
-                .
-              </span>
-            </div>
+            <>
+              <div className="alert">
+                <TicketCheck aria-hidden />
+                <span>
+                  {r.receiptCount > 0
+                    ? 'Recibimos tu comprobante. Lo estamos verificando y te confirmaremos pronto.'
+                    : 'Recibimos tu aviso de pago. Si aún no enviaste el comprobante, súbelo aquí o envíalo por WhatsApp.'}
+                </span>
+              </div>
+              <ReceiptUpload r={r} phone={phone} onUpdate={onUpdate} />
+            </>
           )}
           {r.status === 'CONFIRMED' && (
             <div className="alert alert--ok">
