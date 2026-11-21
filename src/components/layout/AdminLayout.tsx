@@ -158,7 +158,7 @@ export function RequirePerm({ perm, children }: { perm: string; children: React.
 
 export function PageTitle({ title, sub, actions }: { title: string; sub?: string; actions?: React.ReactNode }) {
   useEffect(() => {
-    document.title = `${title} · Panel AVOLAR`;
+    document.title = `${title} · Panel A volar`;
   }, [title]);
   return (
     <div className="admin-head">

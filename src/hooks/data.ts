@@ -14,6 +14,6 @@ export function useSettings() {
 
 export function useDocumentTitle(title: string | undefined) {
   useEffect(() => {
-    document.title = title ? `${title} · AVOLAR Smoke Shop` : 'AVOLAR Smoke Shop';
+    document.title = title ? `${title} · A volar` : 'A volar';
   }, [title]);
 }
