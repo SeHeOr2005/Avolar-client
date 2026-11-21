@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, CalendarSearch, MessageCircle, Search } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CalendarSearch, MessageCircle, Search } from 'lucide-react';
 import { PageTitle } from '../../components/layout/AdminLayout';
 import { ReceiptsPanel } from '../../components/admin/ReceiptsPanel';
 import { Button, Empty, ErrorState, Modal, Skeleton, StatusBadge, TextArea, TextInput, btnClass } from '../../components/ui';
@@ -14,6 +14,7 @@ import type { GameConsole, Pagination } from '../../lib/types';
 interface Row {
   id: string;
   code: string;
+  source: 'WEB' | 'STORE';
   customerName: string;
   customerPhone: string;
   console: { id: string; name: string; platform: string };
@@ -32,6 +33,7 @@ interface Row {
 
 export function ReservationsList() {
   const nav = useNavigate();
+  const { can } = useAuth();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(params.get('q') ?? '');
   const f = {
@@ -67,7 +69,17 @@ export function ReservationsList() {
 
   return (
     <>
-      <PageTitle title="Reservas" sub="Busca, filtra y gestiona el estado de cada reserva." />
+      <PageTitle
+        title="Reservas"
+        sub="Busca, filtra y gestiona el estado de cada reserva."
+        actions={
+          can('reservations.manage') && (
+            <Link to="/admin/reservas/nueva" className={btnClass('primary')}>
+              <CalendarPlus aria-hidden /> Nueva reserva
+            </Link>
+          )
+        }
+      />
       <div className="filterbar">
         <label className="field">
           <span className="field__label">Buscar</span>
@@ -144,6 +156,7 @@ export function ReservationsList() {
                       <Link to={`/admin/reservas/${r.id}`} className="mono strong" onClick={(e) => e.stopPropagation()}>
                         {r.code}
                       </Link>
+                      {r.source === 'STORE' && <div><span className="badge badge--info badge--plain">Presencial</span></div>}
                     </td>
                     <td>
                       <div className="strong">{r.customerName}</div>
@@ -170,7 +183,9 @@ export function ReservationsList() {
             {q.data.reservations.map((r) => (
               <Link key={r.id} to={`/admin/reservas/${r.id}`} className="card mcard">
                 <div className="spread">
-                  <span className="mono strong">{r.code}</span>
+                  <span className="mono strong">
+                    {r.code} {r.source === 'STORE' && <span className="badge badge--info badge--plain">Presencial</span>}
+                  </span>
                   <StatusBadge status={r.status} />
                 </div>
                 <strong>{r.customerName}</strong>
@@ -203,6 +218,7 @@ export function ReservationsList() {
 
 interface Detail extends Row {
   receiptCount: number;
+  createdBy: string | null;
   customerNotes: string | null;
   adminNotes: string | null;
   pricePerHour: number;
@@ -287,7 +303,7 @@ export function ReservationDetail() {
       </Link>
       <PageTitle
         title={`Reserva ${r.code}`}
-        sub={`Creada el ${dateTime(r.createdAt)}`}
+        sub={`${r.source === 'STORE' ? `Presencial, registrada por ${r.createdBy ?? 'el equipo'}` : 'Hecha en la web'} · ${dateTime(r.createdAt)}`}
         actions={<StatusBadge status={r.status} label={r.statusLabel} />}
       />
       <div className="detail-grid">

@@ -12,6 +12,7 @@ import SecurityPage from './pages/admin/Security';
 import PosPage from './pages/admin/Pos';
 import ShopInventoryPage from './pages/admin/ShopInventory';
 import ShopSalesPage from './pages/admin/ShopSales';
+import NewReservationPage from './pages/admin/NewReservation';
 import './styles/admin.css';
 
 /** Si el usuario no ve el dashboard, entra a la primera sección que sí puede ver. */
@@ -28,6 +29,7 @@ export default function AdminRoutes() {
       <Route element={<AdminLayout />}>
         <Route index element={<AdminHome />} />
         <Route path="reservas" element={<RequirePerm perm="reservations.view"><ReservationsList /></RequirePerm>} />
+        <Route path="reservas/nueva" element={<RequirePerm perm="reservations.manage"><NewReservationPage /></RequirePerm>} />
         <Route path="reservas/:id" element={<RequirePerm perm="reservations.view"><ReservationDetail /></RequirePerm>} />
         <Route path="consolas" element={<RequirePerm perm="consoles.manage"><ConsolesList /></RequirePerm>} />
         <Route path="consolas/:id" element={<RequirePerm perm="consoles.manage"><ConsoleEdit /></RequirePerm>} />

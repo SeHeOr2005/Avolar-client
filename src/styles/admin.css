@@ -867,3 +867,26 @@ a.stat {
     padding: 6mm;
   }
 }
+
+/* Opciones de pago de la reserva presencial */
+.pay-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-soft);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.pay-option span {
+  display: grid;
+}
+.pay-option input {
+  margin-top: 3px;
+  accent-color: var(--brand);
+}
+.pay-option[data-checked='true'] {
+  border-color: var(--brand);
+  background: var(--muted-bg);
+}
