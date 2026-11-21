@@ -13,8 +13,8 @@ import { useDocumentTitle, useSettings } from '../../hooks/data';
 import { duration } from '../../lib/format';
 import type { PublicSettings } from '../../lib/types';
 
-export const LEGAL_VERSION = '2026-11-23';
-const VERSION_LABEL = '23 de noviembre de 2026';
+export const LEGAL_VERSION = '2026-11-24';
+const VERSION_LABEL = '24 de noviembre de 2026';
 
 function LegalShell({ title, intro, children }: { title: string; intro: string; children: (s: PublicSettings) => ReactNode }) {
   useDocumentTitle(title);
@@ -226,7 +226,7 @@ export function Privacy() {
             </li>
             <li>
               <strong>Datos técnicos:</strong> fecha, hora y dirección IP desde la que aceptas esta política (como prueba de tu autorización) y
-              registros de seguridad del sitio.
+              registros de seguridad del sitio. No usamos la IP para rastrearte ni para publicidad.
             </li>
             <li>
               <strong>No recogemos</strong> datos sensibles, datos de tarjetas ni claves bancarias. Los comprobantes de pago los envías por
@@ -292,6 +292,10 @@ export function Privacy() {
           <h2>8. Cuánto tiempo guardamos los datos</h2>
           <ul>
             <li>Los datos de las reservas, durante el tiempo necesario para las finalidades descritas y para cumplir obligaciones legales y contables.</li>
+            <li>
+              La dirección IP desde la que aceptaste esta política, <strong>12 meses</strong>. Después se elimina automáticamente y solo
+              conservamos la fecha, la hora y la versión que aceptaste.
+            </li>
             <li>Los registros de seguridad, hasta 90 días.</li>
             <li>Cuando ya no sean necesarios, los eliminamos o anonimizamos.</li>
           </ul>
