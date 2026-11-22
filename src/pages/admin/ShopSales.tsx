@@ -340,6 +340,7 @@ export default function ShopSalesPage() {
                 <th className="num">Esperado</th>
                 <th className="num">Contado</th>
                 <th className="num">Diferencia</th>
+                <th>Nota</th>
               </tr>
             </thead>
             <tbody>
@@ -360,11 +361,14 @@ export default function ShopSalesPage() {
                     {x.difference == null ? (
                       '—'
                     ) : (
-                      <span className={`badge badge--plain ${x.difference === 0 ? 'badge--ok' : 'badge--warn'}`} title={x.notes ?? undefined}>
+                      <span className={`badge badge--plain ${x.difference === 0 ? 'badge--ok' : 'badge--warn'}`}>
                         {x.difference > 0 ? '+' : ''}
                         {money(x.difference, currency)}
                       </span>
                     )}
+                  </td>
+                  <td className="small" style={{ minWidth: 140, maxWidth: 320, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                    {x.notes ? x.notes : <span className="muted">—</span>}
                   </td>
                 </tr>
               ))}
