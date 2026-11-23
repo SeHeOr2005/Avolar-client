@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Ban, Receipt, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Ban, HandCoins, Receipt, TrendingUp } from 'lucide-react';
 import { PageTitle } from '../../components/layout/AdminLayout';
 import { Button, ErrorState, Modal, Skeleton, TextArea } from '../../components/ui';
 import { ApiError, api, qs } from '../../lib/api';
@@ -14,7 +15,19 @@ import type { Pagination } from '../../lib/types';
 
 interface Report {
   range: { from: string; to: string };
-  totals: { sales: number; voided: number; revenue: number; cost: number; profit: number; marginPct: number; averageTicket: number };
+  totals: {
+    sales: number;
+    voided: number;
+    revenue: number;
+    cost: number;
+    profit: number;
+    marginPct: number;
+    averageTicket: number;
+    creditCollected: number;
+    creditPayments: number;
+    receivable: number;
+    debtors: number;
+  };
   byDay: { date: string; label: string; total: number; profit: number }[];
   byMethod: { method: string; label: string; count: number; total: number }[];
   bySeller: { seller: string; count: number; total: number }[];
@@ -30,6 +43,7 @@ interface SaleRow {
   profit: number;
   items: number;
   seller: string;
+  customer: string | null;
   createdAt: string;
 }
 interface SessionRow {
@@ -144,6 +158,15 @@ export default function ShopSalesPage() {
               <span className="stat__value">{money(r.totals.averageTicket, currency)}</span>
               <span className="stat__hint">{r.totals.voided} anulada(s)</span>
             </div>
+            <Link to="/admin/fiados" className="card stat stat--link">
+              <span className="stat__label">
+                <HandCoins aria-hidden /> Por cobrar (fiado)
+              </span>
+              <span className="stat__value">{money(r.totals.receivable, currency)}</span>
+              <span className="stat__hint">
+                {r.totals.debtors} cliente(s) · abonos del periodo {money(r.totals.creditCollected, currency)}
+              </span>
+            </Link>
           </div>
 
           <div className="dash-grid">
@@ -299,7 +322,10 @@ export default function ShopSalesPage() {
                       <td className="mono strong">{x.number}</td>
                       <td className="small">{dateTime(x.createdAt)}</td>
                       <td className="small">{x.seller}</td>
-                      <td className="small">{x.paymentLabel}</td>
+                      <td className="small">
+                        {x.paymentLabel}
+                        {x.customer && <div className="tiny muted">{x.customer}</div>}
+                      </td>
                       <td className="num">{x.items}</td>
                       <td className="num">{money(x.total, currency)}</td>
                       <td className="num">{money(x.profit, currency)}</td>
@@ -394,7 +420,7 @@ function SaleModal({ id, currency, onClose }: { id: string; currency: string; on
     try {
       await api.post(`/admin/pos/sales/${id}/void`, { reason });
       toast.ok('Venta anulada y stock devuelto');
-      ['shop-sale', 'shop-sales', 'shop-report', 'shop-products', 'pos-session'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      ['shop-sale', 'shop-sales', 'shop-report', 'shop-products', 'pos-session', 'shop-customers', 'shop-customer'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     } catch (e) {
       toast.error(e instanceof ApiError ? e.fields.reason ?? e.message : 'No se pudo anular.');
@@ -441,8 +467,19 @@ function SaleModal({ id, currency, onClose }: { id: string; currency: string; on
             </div>
             <div>
               <dt>Pago</dt>
-              <dd>{s.paymentLabel}</dd>
+              <dd>
+                {s.paymentLabel}
+                {s.customer && ` · ${s.customer.name}`}
+              </dd>
             </div>
+            {s.downPayment && (
+              <div>
+                <dt>Abonó al fiar</dt>
+                <dd>
+                  {money(s.downPayment.amount, currency)} ({s.downPayment.label})
+                </dd>
+              </div>
+            )}
             <div>
               <dt>Total</dt>
               <dd>{money(s.total, currency)}</dd>
@@ -499,7 +536,11 @@ function SaleModal({ id, currency, onClose }: { id: string; currency: string; on
               maxLength={300}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              hint="El stock de los productos vuelve al inventario y la venta deja de contar en las ganancias."
+              hint={
+                s.customer
+                  ? 'El stock vuelve al inventario, la venta deja de contar y se le descuenta de la deuda al cliente (si abonó al fiar, ese abono se le devuelve).'
+                  : 'El stock de los productos vuelve al inventario y la venta deja de contar en las ganancias.'
+              }
               autoFocus
             />
           )}

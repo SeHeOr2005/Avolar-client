@@ -1,11 +1,28 @@
 /** Tipos y utilidades del punto de venta de la tienda. */
-export type PayMethod = 'CASH' | 'WALLET' | 'TRANSFER';
+export type MoneyMethod = 'CASH' | 'WALLET' | 'TRANSFER';
+export type PayMethod = MoneyMethod | 'CREDIT';
 
-export const PAY_LABELS: Record<PayMethod, string> = {
+/** Medios con los que entra dinero (para cobrar o recibir abonos). */
+export const MONEY_LABELS: Record<MoneyMethod, string> = {
   CASH: 'Efectivo',
   WALLET: 'Nequi / Daviplata',
   TRANSFER: 'Transferencia',
 };
+
+export const PAY_LABELS: Record<PayMethod, string> = { ...MONEY_LABELS, CREDIT: 'Fiado' };
+
+export interface ShopCustomer {
+  id: string;
+  name: string;
+  phone: string | null;
+  notes: string | null;
+  owed: number;
+  paid: number;
+  balance: number;
+  creditSales: number;
+  lastPaymentAt: string | null;
+  createdAt: string;
+}
 
 export interface ShopProduct {
   id: string;
@@ -28,6 +45,9 @@ export interface SessionSummary {
   voidedCount: number;
   total: number;
   byMethod: { method: PayMethod; label: string; count: number; total: number }[];
+  /** Abonos a fiados recibidos en el turno. */
+  creditPayments: { method: MoneyMethod; label: string; count: number; total: number }[];
+  creditCollected: number;
   openingCash: number;
   expectedCash: number;
 }
@@ -54,6 +74,8 @@ export interface SaleDetail {
   voidedAt: string | null;
   voidedBy: string | null;
   voidReason: string | null;
+  customer: { id: string; name: string; balance: number } | null;
+  downPayment: { amount: number; method: MoneyMethod; label: string } | null;
   costTotal?: number;
   profit?: number;
   items: { name: string; barcode: string; quantity: number; unitPrice: number; lineTotal: number; unitCost?: number; lineProfit?: number }[];

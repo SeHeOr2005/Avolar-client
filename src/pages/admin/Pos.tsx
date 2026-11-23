@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Banknote, Lock, Minus, Plus, Printer, ScanBarcode, ShoppingCart, Trash2, Unlock, Wallet } from 'lucide-react';
+import { Banknote, HandCoins, Lock, Minus, Plus, Printer, ScanBarcode, ShoppingCart, Trash2, Unlock, Wallet } from 'lucide-react';
 import { PageTitle } from '../../components/layout/AdminLayout';
 import { Button, ErrorState, Modal, Skeleton, TextArea, TextInput } from '../../components/ui';
 import { ApiError, api, qs } from '../../lib/api';
 import { dateTime, money } from '../../lib/format';
-import { PAY_LABELS, beep, looksLikeBarcode, type OpenSession, type PayMethod, type SaleDetail, type ShopProduct } from '../../lib/pos';
+import { PAY_LABELS, beep, looksLikeBarcode, type MoneyMethod, type OpenSession, type PayMethod, type SaleDetail, type ShopCustomer, type ShopProduct } from '../../lib/pos';
+import { CustomerPicker, MoneyMethodPicker, PaymentModal, useInvalidateCredit } from '../../components/admin/Credit';
 import { useSettings } from '../../hooks/data';
 import { useToast } from '../../hooks/toast';
 import { useAuth } from '../../hooks/auth';
@@ -94,7 +95,13 @@ function Register({ session }: { session: OpenSession }) {
   const [charging, setCharging] = useState(false);
   const [done, setDone] = useState<SaleDetail | null>(null);
   const [closing, setClosing] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [notFound, setNotFound] = useState<string | null>(null);
+  // Fiado: cliente y abono en el momento (opcional).
+  const [customer, setCustomer] = useState<ShopCustomer | null>(null);
+  const [down, setDown] = useState('');
+  const [downMethod, setDownMethod] = useState<MoneyMethod>('CASH');
+  const invalidateCredit = useInvalidateCredit();
 
   const focusScan = useCallback(() => setTimeout(() => scanRef.current?.focus(), 0), []);
 
@@ -102,7 +109,7 @@ function Register({ session }: { session: OpenSession }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement as HTMLElement | null;
-      if (done || closing || !scanRef.current) return;
+      if (done || closing || paying || !scanRef.current) return;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
       e.preventDefault();
@@ -111,7 +118,7 @@ function Register({ session }: { session: OpenSession }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [done, closing]);
+  }, [done, closing, paying]);
 
   const search = useQuery({
     queryKey: ['pos-search', scan],
@@ -188,21 +195,31 @@ function Register({ session }: { session: OpenSession }) {
   const receivedNum = received === '' ? total : Number(received);
   const change = method === 'CASH' ? Math.max(0, receivedNum - total) : 0;
   const short = method === 'CASH' && receivedNum < total;
+  const credit = method === 'CREDIT';
+  const downNum = Number(down || 0);
+  const downTooHigh = credit && downNum >= total && total > 0;
+  const blocked = short || (credit && (!customer || downTooHigh));
 
   async function charge() {
-    if (!cart.length || short) return;
+    if (!cart.length || blocked) return;
     setCharging(true);
     try {
       const r = await api.post<{ sale: SaleDetail }>('/admin/pos/sales', {
         items: cart.map((l) => ({ productId: l.product.id, quantity: l.qty })),
         paymentMethod: method,
         cashReceived: method === 'CASH' ? receivedNum : null,
+        customerId: credit ? customer!.id : null,
+        downPayment: credit && downNum > 0 ? { amount: downNum, method: downMethod } : null,
       });
       beep('ok');
       setDone(r.sale);
       setCart([]);
       setReceived('');
       setMethod('CASH');
+      setCustomer(null);
+      setDown('');
+      setDownMethod('CASH');
+      if (credit) invalidateCredit();
       qc.invalidateQueries({ queryKey: ['pos-session'] });
       qc.invalidateQueries({ queryKey: ['pos-search'] });
       qc.invalidateQueries({ queryKey: ['shop-products'] });
@@ -222,9 +239,14 @@ function Register({ session }: { session: OpenSession }) {
         title="Caja"
         sub={`Abierta ${dateTime(session.openedAt)} por ${session.openedBy.fullName} · ${session.summary.salesCount} venta(s) · ${money(session.summary.total, currency)}`}
         actions={
-          <Button icon={<Lock aria-hidden />} onClick={() => setClosing(true)}>
-            Cerrar caja
-          </Button>
+          <>
+            <Button icon={<HandCoins aria-hidden />} onClick={() => setPaying(true)}>
+              Recibir abono
+            </Button>
+            <Button icon={<Lock aria-hidden />} onClick={() => setClosing(true)}>
+              Cerrar caja
+            </Button>
+          </>
         }
       />
       <div className="pos">
@@ -258,9 +280,12 @@ function Register({ session }: { session: OpenSession }) {
               {search.data!.map((p) => (
                 <li key={p.id}>
                   <button type="button" onClick={() => add(p)} disabled={p.stock === 0} role="option" aria-selected={false}>
-                    <span className="stack" style={{ '--gap': '0' } as React.CSSProperties}>
+                    <span className="stack" style={{ '--gap': '2px' } as React.CSSProperties}>
                       <strong>{p.name}</strong>
-                      <span className="tiny muted mono">{p.barcode}</span>
+                      <span className="row tiny muted" style={{ '--gap': '6px' } as React.CSSProperties}>
+                        <CategoryTag category={p.category} />
+                        <span className="mono">{p.barcode}</span>
+                      </span>
                     </span>
                     <span className="stack" style={{ '--gap': '0', textAlign: 'right' } as React.CSSProperties}>
                       <strong>{money(p.price, currency)}</strong>
@@ -280,8 +305,11 @@ function Register({ session }: { session: OpenSession }) {
                 <li key={l.product.id} className="pos-line">
                   <div className="pos-line__info">
                     <strong>{l.product.name}</strong>
-                    <span className="tiny muted">
-                      {money(l.product.price, currency)} c/u · {l.product.stock} en stock
+                    <span className="row tiny muted" style={{ '--gap': '6px' } as React.CSSProperties}>
+                      <CategoryTag category={l.product.category} />
+                      <span>
+                        {money(l.product.price, currency)} c/u · {l.product.stock} en stock
+                      </span>
                     </span>
                   </div>
                   <div className="pos-qty">
@@ -327,7 +355,7 @@ function Register({ session }: { session: OpenSession }) {
           <div className="pos-methods" role="radiogroup" aria-label="Medio de pago">
             {(Object.keys(PAY_LABELS) as PayMethod[]).map((m) => (
               <button key={m} type="button" role="radio" aria-checked={method === m} className="chip" onClick={() => setMethod(m)}>
-                {m === 'CASH' ? <Banknote size={18} aria-hidden /> : <Wallet size={18} aria-hidden />}
+                {m === 'CASH' ? <Banknote size={18} aria-hidden /> : m === 'CREDIT' ? <HandCoins size={18} aria-hidden /> : <Wallet size={18} aria-hidden />}
                 {PAY_LABELS[m]}
               </button>
             ))}
@@ -359,9 +387,38 @@ function Register({ session }: { session: OpenSession }) {
               </div>
             </div>
           )}
-          {method !== 'CASH' && <p className="small muted">Verifica el pago en el celular de la tienda antes de cobrar.</p>}
-          <Button variant="primary" size="lg" block loading={charging} disabled={!cart.length || short} onClick={charge}>
-            Cobrar {total > 0 ? money(total, currency) : ''}
+          {(method === 'WALLET' || method === 'TRANSFER') && <p className="small muted">Verifica el pago en el celular de la tienda antes de cobrar.</p>}
+          {credit && (
+            <div className="stack" style={{ '--gap': '10px' } as React.CSSProperties}>
+              <CustomerPicker value={customer} onChange={setCustomer} currency={currency} />
+              {customer && (
+                <>
+                  <TextInput
+                    label="Abona ahora (opcional)"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={down}
+                    placeholder="0"
+                    onChange={(e) => setDown(e.target.value)}
+                    error={downTooHigh ? 'Si paga todo, cóbralo con efectivo o Nequi' : undefined}
+                  />
+                  {downNum > 0 && <MoneyMethodPicker value={downMethod} onChange={setDownMethod} label="El abono lo da en" />}
+                  <div className="spread">
+                    <span className="muted">Queda debiendo</span>
+                    <strong className="pos-change">{money(Math.max(0, total - downNum) + Math.max(0, customer.balance), currency)}</strong>
+                  </div>
+                  {customer.balance > 0 && (
+                    <p className="tiny muted">
+                      Incluye {money(customer.balance, currency)} que ya debía.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+          <Button variant="primary" size="lg" block loading={charging} disabled={!cart.length || blocked} onClick={charge}>
+            {credit ? 'Fiar' : 'Cobrar'} {total > 0 ? money(total, currency) : ''}
           </Button>
           {cart.length > 0 && (
             <Button variant="ghost" block onClick={() => setCart([])}>
@@ -382,8 +439,22 @@ function Register({ session }: { session: OpenSession }) {
         />
       )}
       {closing && <CloseRegister session={session} currency={currency} onClose={() => setClosing(false)} />}
+      {paying && (
+        <PaymentModal
+          currency={currency}
+          onClose={() => {
+            setPaying(false);
+            focusScan();
+          }}
+        />
+      )}
     </>
   );
+}
+
+/** Categoría del producto de tienda (o "Sin categoría"). */
+function CategoryTag({ category }: { category: string | null }) {
+  return <span className={`badge badge--plain ${category ? 'badge--info' : ''}`}>{category ?? 'Sin categoría'}</span>;
 }
 
 /** Venta registrada: resumen, vueltas e impresión del ticket. */
@@ -409,6 +480,15 @@ export function SaleDone({ sale, currency, onClose }: { sale: SaleDetail; curren
         <strong>{money(sale.total, currency)}</strong>
         {sale.change != null && sale.change > 0 && <span className="pos-change">Vueltas: {money(sale.change, currency)}</span>}
       </div>
+      {sale.customer && (
+        <div className="alert alert--warn">
+          <div>
+            Fiado a <strong>{sale.customer.name}</strong>
+            {sale.downPayment ? ` · abonó ${money(sale.downPayment.amount, currency)} (${sale.downPayment.label.toLowerCase()})` : ' · sin abono'}. Ahora debe en
+            total <strong>{money(sale.customer.balance, currency)}</strong>.
+          </div>
+        </div>
+      )}
       <div className="print-ticket">
         <p style={{ textAlign: 'center', fontWeight: 800 }}>{s?.legalName || s?.businessName || 'AVOLAR'}</p>
         {s?.taxId && <p style={{ textAlign: 'center' }}>NIT {s.taxId}</p>}
@@ -437,6 +517,20 @@ export function SaleDone({ sale, currency, onClose }: { sale: SaleDetail; curren
             <>
               <br />
               Recibido {money(sale.cashReceived, currency)} · Vueltas {money(sale.change ?? 0, currency)}
+            </>
+          )}
+          {sale.customer && (
+            <>
+              <br />
+              Cliente: {sale.customer.name}
+              {sale.downPayment && (
+                <>
+                  <br />
+                  Abono: {money(sale.downPayment.amount, currency)} ({sale.downPayment.label})
+                </>
+              )}
+              <br />
+              Saldo pendiente: {money(sale.customer.balance, currency)}
             </>
           )}
         </p>
@@ -521,12 +615,22 @@ function CloseRegister({ session, currency, onClose }: { session: OpenSession; c
             <strong className="num">{money(m.total, currency)}</strong>
           </li>
         ))}
+        {sum.creditPayments
+          .filter((m) => m.count > 0)
+          .map((m) => (
+            <li key={`abono-${m.method}`}>
+              <span>
+                Abonos de fiado · {m.label} <span className="tiny muted">({m.count})</span>
+              </span>
+              <strong className="num">{money(m.total, currency)}</strong>
+            </li>
+          ))}
         <li>
           <span>Base inicial</span>
           <strong className="num">{money(sum.openingCash, currency)}</strong>
         </li>
         <li>
-          <strong>Efectivo que debería haber</strong>
+          <strong title="Base + ventas en efectivo + abonos en efectivo">Efectivo que debería haber</strong>
           <strong className="num">{money(sum.expectedCash, currency)}</strong>
         </li>
       </ul>

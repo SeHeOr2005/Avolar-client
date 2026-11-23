@@ -953,3 +953,49 @@ a.stat {
   margin-top: 6px;
   font-size: 0.85rem;
 }
+
+/* ═══════════ Fiados ═══════════ */
+.credit-customer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--brand);
+  background: var(--muted-bg);
+}
+.credit-customer > div {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.credit-new {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--line-soft);
+}
+.filterbar.credit-filters {
+  grid-template-columns: minmax(200px, 420px) auto;
+  justify-content: start;
+}
+@media (max-width: 640px) {
+  .filterbar.credit-filters {
+    grid-template-columns: 1fr;
+  }
+}
+.modal .activity__item {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+.stat--link {
+  color: inherit;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.stat--link:hover {
+  transform: translateY(-2px);
+}
+.pos__right .pos-results {
+  max-height: 260px;
+  overflow: auto;
+}
