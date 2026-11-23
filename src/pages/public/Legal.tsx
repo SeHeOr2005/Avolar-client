@@ -13,8 +13,8 @@ import { useDocumentTitle, useSettings } from '../../hooks/data';
 import { duration } from '../../lib/format';
 import type { PublicSettings } from '../../lib/types';
 
-export const LEGAL_VERSION = '2026-11-25';
-const VERSION_LABEL = '25 de noviembre de 2026';
+export const LEGAL_VERSION = '2026-11-26';
+const VERSION_LABEL = '26 de noviembre de 2026';
 
 function LegalShell({ title, intro, children }: { title: string; intro: string; children: (s: PublicSettings) => ReactNode }) {
   useDocumentTitle(title);
@@ -234,6 +234,11 @@ export function Privacy() {
               la tienda y se elimina automáticamente a los 12 meses. Si prefieres, puedes enviarlo por WhatsApp.
             </li>
             <li>
+              <strong>Si compras fiado en la tienda física:</strong> tu nombre y, si nos lo das, tu número de celular, junto con el registro de lo
+              que te llevaste fiado, los abonos que haces (valor, fecha y medio de pago) y tu saldo pendiente. Los registra el equipo en la caja
+              de la tienda; no se recogen en el sitio web.
+            </li>
+            <li>
               <strong>No recogemos</strong> datos sensibles, datos de tarjetas ni claves bancarias.
             </li>
           </ul>
@@ -242,6 +247,10 @@ export function Privacy() {
           <ul>
             <li>Crear, gestionar y confirmar tu reserva, y verificar el pago del anticipo.</li>
             <li>Contactarte por teléfono o WhatsApp sobre tu reserva (confirmaciones, cambios o cancelaciones).</li>
+            <li>
+              Si compras fiado: llevar la cuenta de lo que debes y de tus abonos, y recordarte tu saldo pendiente por WhatsApp si nos diste tu
+              celular.
+            </li>
             <li>Atender tus peticiones, quejas o reclamos.</li>
             <li>Proteger el sitio frente a fraudes y accesos no autorizados.</li>
             <li>Cumplir obligaciones legales, contables y tributarias.</li>
@@ -301,6 +310,10 @@ export function Privacy() {
               conservamos la fecha, la hora y la versión que aceptaste.
             </li>
             <li>Los comprobantes de pago que subas, 12 meses. Después se eliminan automáticamente.</li>
+            <li>
+              Los datos de compras fiadas, mientras tengas saldo pendiente y después durante el tiempo que exijan las obligaciones contables.
+              Cuando quedes a paz y salvo puedes pedirnos que borremos tu celular.
+            </li>
             <li>Los registros de seguridad, hasta 90 días.</li>
             <li>Cuando ya no sean necesarios, los eliminamos o anonimizamos.</li>
           </ul>
@@ -316,6 +329,10 @@ export function Privacy() {
             Al marcar la casilla de aceptación al reservar, nos das tu autorización previa, expresa e informada para tratar tus datos según esta
             política. Guardamos la fecha, la hora y la versión aceptada como prueba. Esta política rige desde su publicación; si la cambiamos de
             forma sustancial, lo informaremos en el sitio.
+          </p>
+          <p>
+            Si compras fiado en la tienda, el equipo te pedirá en ese momento tu autorización para registrar tu nombre y, si quieres, tu
+            celular, y te indicará dónde consultar esta política. Darnos tu celular es opcional: sin él igual podemos fiarte.
           </p>
         </>
       )}

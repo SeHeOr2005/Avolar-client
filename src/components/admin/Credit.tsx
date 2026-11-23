@@ -116,6 +116,9 @@ export function CustomerPicker({
           hint="Sirve para cobrarle por WhatsApp."
           maxLength={20}
         />
+        <p className="tiny muted">
+          Pídele autorización para guardar sus datos y cuéntale que la política de privacidad está en la web (sección Legal).
+        </p>
         <div className="row" style={{ '--gap': '8px' } as React.CSSProperties}>
           <Button variant="ghost" onClick={() => setCreating(false)}>
             Volver
