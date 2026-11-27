@@ -999,3 +999,33 @@ a.stat {
   max-height: 260px;
   overflow: auto;
 }
+
+/* Reserva presencial: hora exacta de inicio */
+.start-exact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+.start-exact > .field {
+  flex: 1 1 200px;
+  max-width: 260px;
+}
+.start-exact > .btn {
+  margin-bottom: 2px;
+}
+.slot-shortcuts summary {
+  cursor: pointer;
+  color: var(--brand);
+  width: fit-content;
+  margin-bottom: 8px;
+}
+.slot-grid--wide {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+}
+.chip--stack {
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 10px;
+  line-height: 1.2;
+}

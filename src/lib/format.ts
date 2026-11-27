@@ -32,6 +32,12 @@ export const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', '
 export const WEEKDAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 /** Fecha "hoy" (YYYY-MM-DD) en la zona horaria de la tienda. */
+/** Minuto actual del día (0–1439) en la zona horaria de la tienda. */
+export function nowMinuteInZone(zone: string) {
+  const [h, m] = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()).split(':').map(Number);
+  return h * 60 + m;
+}
+
 export function todayInZone(zone: string, plusDays = 0) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   if (!plusDays) return parts;

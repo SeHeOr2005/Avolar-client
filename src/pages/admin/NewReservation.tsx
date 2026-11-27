@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, CalendarPlus, CalendarX } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CalendarX, Clock } from 'lucide-react';
 import { PageTitle } from '../../components/layout/AdminLayout';
 import { Button, Empty, ErrorState, Select, Skeleton, TextArea, TextInput, btnClass } from '../../components/ui';
 import { ApiError, api, qs } from '../../lib/api';
-import { calendar, duration, hhmm, money, todayInZone } from '../../lib/format';
+import { calendar, duration, hhmm, hhmmToMin, money, nowMinuteInZone, todayInZone } from '../../lib/format';
 import { useSettings } from '../../hooks/data';
 import { useToast } from '../../hooks/toast';
 import type { Availability, GameConsole } from '../../lib/types';
@@ -14,7 +14,8 @@ type Payment = 'FULL' | 'DEPOSIT' | 'NONE';
 
 /**
  * Reserva presencial: el cliente está en la tienda y el equipo la registra.
- * Mismas reglas de horario y contra la doble reserva que la web, pero sin anticipación mínima.
+ * Se anota la hora exacta en que empezaron (al minuto, hasta 60 min atrás) y la duración en bloques.
+ * Mismas reglas contra la doble reserva que la web, pero sin anticipación mínima.
  */
 export default function NewReservationPage() {
   const nav = useNavigate();
@@ -32,7 +33,8 @@ export default function NewReservationPage() {
   const [consoleId, setConsoleId] = useState('');
   const [date, setDate] = useState(() => todayInZone(zone));
   const [start, setStart] = useState<number | null>(null);
-  const [end, setEnd] = useState<number | null>(null);
+  const [length, setLength] = useState<number | null>(null);
+  const end = start != null && length != null ? start + length : null;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
@@ -46,7 +48,7 @@ export default function NewReservationPage() {
   }, [active, consoleId]);
   useEffect(() => {
     setStart(null);
-    setEnd(null);
+    setLength(null);
   }, [consoleId, date]);
 
   const c = active.find((x) => x.id === consoleId);
@@ -59,6 +61,9 @@ export default function NewReservationPage() {
   const a = avail.data;
   const overlaps = (from: number, to: number) => (a?.busy ?? []).some((b) => from < b.end && to > b.start);
 
+  const isToday = date === todayInZone(zone);
+
+  /** Bloques sugeridos (atajos); la hora exacta se escribe en el campo. */
   const starts = useMemo(() => {
     if (!a || a.open == null || a.close == null || a.earliestStart == null) return [];
     const out: { m: number; free: boolean }[] = [];
@@ -67,14 +72,43 @@ export default function NewReservationPage() {
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [a]);
-  const ends = useMemo(() => {
-    if (!a || start == null || a.close == null) return [];
-    const nextBusy = Math.min(...a.busy.filter((b) => b.start > start).map((b) => b.start), a.close);
+
+  /** Por qué la hora de inicio escrita no sirve (o null si sirve). */
+  const startProblem = useMemo(() => {
+    if (!a || start == null || a.open == null || a.close == null || a.earliestStart == null) return null;
+    if (start < a.open) return `Abre a las ${hhmm(a.open)}.`;
+    if (start < a.earliestStart) return isToday ? 'Puede ser como máximo 60 minutos antes de ahora.' : 'Esa hora no está disponible.';
+    if (start + a.minMinutes > a.close) return `Cierra a las ${hhmm(a.close)}: no alcanza la duración mínima (${duration(a.minMinutes)}).`;
+    const hit = a.busy.find((b) => start < b.end && start + a.minMinutes > b.start);
+    if (hit) return `Ocupada de ${hhmm(hit.start)} a ${hit.end >= 1440 ? '24:00' : hhmm(hit.end)}.`;
+    return null;
+  }, [a, start, isToday]);
+
+  /** Duraciones posibles desde la hora de inicio (en bloques), hasta el cierre o la siguiente reserva. */
+  const lengths = useMemo(() => {
+    if (!a || start == null || a.close == null || startProblem) return [];
+    const nextBusy = Math.min(...a.busy.filter((b) => b.start >= start).map((b) => b.start), a.close);
     const limit = Math.min(start + a.maxMinutes, a.close, nextBusy);
     const out: number[] = [];
-    for (let m = start + a.minMinutes; m <= limit; m += a.slotMinutes) out.push(m);
+    for (let d = a.minMinutes; start + d <= limit; d += a.slotMinutes) out.push(d);
     return out;
-  }, [a, start]);
+  }, [a, start, startProblem]);
+
+  // Si la duración elegida ya no cabe con la nueva hora de inicio, se ajusta a la mínima.
+  useEffect(() => {
+    if (length != null && !lengths.includes(length)) setLength(lengths[0] ?? null);
+    if (length == null && lengths.length) setLength(lengths[0]);
+  }, [lengths, length]);
+
+  const pickNow = () => {
+    if (!a || a.open == null) return;
+    setStart(Math.max(a.open, nowMinuteInZone(zone)));
+  };
+  // Hoy, por defecto empieza "ahora" (lo más común en la tienda).
+  useEffect(() => {
+    if (isToday && start == null && a && !a.reason && a.open != null) setStart(Math.max(a.open, nowMinuteInZone(zone)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [a, isToday]);
 
   const minutes = start != null && end != null ? end - start : 0;
   const total = c ? Math.round(c.pricePerHour * 100 * (minutes / 60)) / 100 : 0;
@@ -83,7 +117,7 @@ export default function NewReservationPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (start == null || end == null) return toast.error('Elige la hora de inicio y de fin.');
+    if (start == null || end == null || startProblem) return toast.error(startProblem ?? 'Elige la hora de inicio y la duración.');
     setBusy(true);
     setErrors({});
     try {
@@ -105,11 +139,7 @@ export default function NewReservationPage() {
       if (err instanceof ApiError) {
         setErrors(err.fields);
         toast.error(err.message);
-        if (err.code === 'SLOT_TAKEN') {
-          setStart(null);
-          setEnd(null);
-          avail.refetch();
-        }
+        if (err.code === 'SLOT_TAKEN' || err.code === 'TOO_SOON') avail.refetch();
       }
     } finally {
       setBusy(false);
@@ -124,7 +154,7 @@ export default function NewReservationPage() {
       <Link to="/admin/reservas" className={btnClass('ghost', 'sm')} style={{ marginBottom: 10 }}>
         <ArrowLeft aria-hidden /> Reservas
       </Link>
-      <PageTitle title="Nueva reserva presencial" sub="Para clientes que reservan en la tienda. Puede empezar desde el bloque de horario actual." />
+      <PageTitle title="Nueva reserva presencial" sub="Para clientes que reservan en la tienda. Anota la hora exacta en que empezaron a jugar." />
       {!active.length ? (
         <Empty icon={<CalendarX />} title="No hay consolas activas" action={<Link className={btnClass('primary')} to="/admin/consolas">Ir a consolas</Link>}>
           Activa o registra una consola para poder reservar.
@@ -149,38 +179,51 @@ export default function NewReservationPage() {
                 <Skeleton h={120} />
               ) : avail.isError ? (
                 <ErrorState error={avail.error} onRetry={() => avail.refetch()} />
-              ) : a && (a.reason || !starts.some((x) => x.free)) ? (
-                <div className="alert alert--warn">{a.reason ?? 'No quedan horarios libres en este día.'}</div>
+              ) : a && a.reason ? (
+                <div className="alert alert--warn">{a.reason}</div>
               ) : a ? (
                 <>
                   <div className="stack" style={{ '--gap': '8px' } as React.CSSProperties}>
-                    <h3 className="small strong">Inicio</h3>
-                    <div className="slot-grid" role="radiogroup" aria-label="Hora de inicio">
-                      {starts.map((x) => (
-                        <button
-                          key={x.m}
-                          type="button"
-                          role="radio"
-                          className="chip"
-                          aria-checked={start === x.m}
-                          disabled={!x.free}
-                          onClick={() => {
-                            setStart(x.m);
-                            setEnd(x.m + a.minMinutes);
-                          }}
-                        >
-                          {hhmm(x.m)}
-                        </button>
-                      ))}
+                    <div className="start-exact">
+                      <TextInput
+                        label="Hora exacta de inicio"
+                        type="time"
+                        step={60}
+                        value={start != null ? hhmm(start) : ''}
+                        onChange={(e) => setStart(e.target.value ? hhmmToMin(e.target.value) : null)}
+                        error={startProblem ?? errors.startTime}
+                        hint={isToday ? 'Puede ser hasta 60 minutos antes de ahora, si ya empezaron a jugar.' : undefined}
+                      />
+                      {isToday && (
+                        <Button icon={<Clock aria-hidden />} onClick={pickNow}>
+                          Ahora
+                        </Button>
+                      )}
                     </div>
+                    {starts.some((x) => x.free) && (
+                      <details className="slot-shortcuts">
+                        <summary className="tiny">O elige un bloque de horario</summary>
+                        <div className="slot-grid" role="radiogroup" aria-label="Bloques de inicio">
+                          {starts.map((x) => (
+                            <button key={x.m} type="button" role="radio" className="chip" aria-checked={start === x.m} disabled={!x.free} onClick={() => setStart(x.m)}>
+                              {hhmm(x.m)}
+                            </button>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
-                  {start != null && (
+                  {start != null && !startProblem && (
                     <div className="stack" style={{ '--gap': '8px' } as React.CSSProperties}>
-                      <h3 className="small strong">Fin</h3>
-                      <div className="slot-grid" role="radiogroup" aria-label="Hora de fin">
-                        {ends.map((m) => (
-                          <button key={m} type="button" role="radio" className="chip" aria-checked={end === m} onClick={() => setEnd(m)}>
-                            {hhmm(m)}
+                      <h3 className="small strong">¿Cuánto tiempo juegan?</h3>
+                      <div className="slot-grid slot-grid--wide" role="radiogroup" aria-label="Duración">
+                        {lengths.map((d) => (
+                          <button key={d} type="button" role="radio" className="chip chip--stack" aria-checked={length === d}
+                            aria-label={`${duration(d)}, hasta ${start + d >= 1440 ? '24:00' : hhmm(start + d)}`}
+                            onClick={() => setLength(d)}
+                          >
+                            <strong>{duration(d)}</strong>
+                            <span className="tiny">hasta {start + d >= 1440 ? '24:00' : hhmm(start + d)}</span>
                           </button>
                         ))}
                       </div>
@@ -256,7 +299,7 @@ export default function NewReservationPage() {
             <p className="small">
               Se registra como pagado: <strong>{money(paidNow, currency)}</strong>
             </p>
-            <Button type="submit" variant="primary" size="lg" block loading={busy} disabled={start == null || end == null} icon={<CalendarPlus aria-hidden />}>
+            <Button type="submit" variant="primary" size="lg" block loading={busy} disabled={start == null || end == null || Boolean(startProblem)} icon={<CalendarPlus aria-hidden />}>
               Registrar reserva
             </Button>
           </aside>
