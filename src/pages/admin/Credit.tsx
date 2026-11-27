@@ -35,7 +35,7 @@ function waLink(c: ShopCustomer, currency: string, store: string) {
   return `https://wa.me/${to}?text=${encodeURIComponent(text)}`;
 }
 
-export default function CreditPage() {
+export default function CreditPage({ embedded = false }: { embedded?: boolean }) {
   const { data: s } = useSettings();
   const currency = s?.currency ?? 'COP';
   const [search, setSearch] = useState('');
@@ -69,15 +69,26 @@ export default function CreditPage() {
 
   return (
     <>
-      <PageTitle
-        title="Fiados"
-        sub="Quién le debe a la tienda, cuánto ha abonado y su historial."
-        actions={
+      {embedded ? (
+        <div className="spread" style={{ marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+          <p className="small muted" style={{ margin: 0 }}>
+            Quién le debe a la tienda, cuánto ha abonado y su historial.
+          </p>
           <Button variant="primary" icon={<HandCoins aria-hidden />} onClick={() => setPaying(null)}>
             Recibir abono
           </Button>
-        }
-      />
+        </div>
+      ) : (
+        <PageTitle
+          title="Fiados"
+          sub="Quién le debe a la tienda, cuánto ha abonado y su historial."
+          actions={
+            <Button variant="primary" icon={<HandCoins aria-hidden />} onClick={() => setPaying(null)}>
+              Recibir abono
+            </Button>
+          }
+        />
+      )}
 
       <div className="stats" style={{ marginBottom: 16 }}>
         <div className="card stat stat--accent">

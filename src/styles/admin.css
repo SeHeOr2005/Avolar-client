@@ -1029,3 +1029,51 @@ a.stat {
   padding: 8px 10px;
   line-height: 1.2;
 }
+
+/* ═══════════ Dashboard: pestañas y dinero ═══════════ */
+.dash-tabs {
+  margin: -4px 0 18px;
+  --gap: 8px;
+}
+.dash-section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 22px 0 12px;
+}
+.money {
+  margin-bottom: 8px;
+}
+.money .stats {
+  margin-top: 12px;
+}
+.chart-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-legend__swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+.money-table summary {
+  cursor: pointer;
+  color: var(--brand);
+  width: fit-content;
+  margin-top: 6px;
+}
+.money-table .table-wrap {
+  margin-top: 8px;
+}

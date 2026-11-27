@@ -60,7 +60,7 @@ interface SessionRow {
   notes: string | null;
 }
 
-export default function ShopSalesPage() {
+export default function ShopSalesPage({ embedded = false }: { embedded?: boolean }) {
   const { data: s } = useSettings();
   const { theme } = useTheme();
   const zone = s?.timezone ?? 'America/Bogota';
@@ -102,7 +102,7 @@ export default function ShopSalesPage() {
 
   return (
     <>
-      <PageTitle title="Ventas tienda" sub="Ventas, ganancias y arqueos de la caja de la tienda." />
+      {!embedded && <PageTitle title="Ventas tienda" sub="Ventas, ganancias y arqueos de la caja de la tienda." />}
 
       <div className="row" style={{ marginBottom: 16 }} role="group" aria-label="Periodo">
         {presets.map((p) => (
@@ -158,7 +158,7 @@ export default function ShopSalesPage() {
               <span className="stat__value">{money(r.totals.averageTicket, currency)}</span>
               <span className="stat__hint">{r.totals.voided} anulada(s)</span>
             </div>
-            <Link to="/admin/fiados" className="card stat stat--link">
+            <Link to="/admin?tab=fiados" className="card stat stat--link">
               <span className="stat__label">
                 <HandCoins aria-hidden /> Por cobrar (fiado)
               </span>

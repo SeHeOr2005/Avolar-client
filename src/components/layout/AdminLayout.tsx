@@ -4,13 +4,11 @@ import {
   CalendarClock,
   ExternalLink,
   Gamepad2,
-  HandCoins,
   History,
   LayoutDashboard,
   LogOut,
   Menu,
   Boxes,
-  Receipt,
   ScanBarcode,
   Settings,
   ShieldCheck,
@@ -25,15 +23,14 @@ import { Button, Logo, Modal, ThemeToggle } from '../ui';
 import { setLogoutReason, useIdleLogout } from '../../hooks/idle';
 
 export const ADMIN_NAV = [
-  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, perm: 'dashboard.view', end: true },
+  // El dashboard reúne todo lo de dinero: resumen, ventas de la tienda y fiados (cada pestaña con su permiso).
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, perm: ['dashboard.view', 'pos.reports', 'pos.sell'], end: true },
   { to: '/admin/caja', label: 'Caja', icon: ScanBarcode, perm: 'pos.sell' },
   { to: '/admin/reservas', label: 'Reservas', icon: CalendarClock, perm: 'reservations.view' },
   { to: '/admin/consolas', label: 'Consolas', icon: Gamepad2, perm: 'consoles.manage' },
   { to: '/admin/productos', label: 'Productos', icon: Shirt, perm: 'catalog.manage' },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags, perm: 'catalog.manage' },
   { to: '/admin/inventario-tienda', label: 'Inventario tienda', icon: Boxes, perm: 'pos.sell' },
-  { to: '/admin/ventas-tienda', label: 'Ventas tienda', icon: Receipt, perm: 'pos.reports' },
-  { to: '/admin/fiados', label: 'Fiados', icon: HandCoins, perm: 'pos.sell' },
   { to: '/admin/configuracion', label: 'Configuración', icon: Settings, perm: 'settings.manage' },
   { to: '/admin/usuarios', label: 'Usuarios y roles', icon: UserCog, perm: 'users.manage' },
   { to: '/admin/actividad', label: 'Actividad', icon: History, perm: 'audit.view' },
@@ -71,7 +68,10 @@ export function AdminLayout() {
   }
   if (!user) return <Navigate to="/admin/login" replace state={{ from: loc.pathname }} />;
 
-  const nav = ADMIN_NAV.filter((n) => can(n.perm));
+  const nav = ADMIN_NAV.filter((n) => canAny(can, n.perm)).map((n) =>
+    // Quien solo atiende la caja entra al dashboard directo en Fiados (es la única pestaña que ve).
+    n.to === '/admin' && !can('dashboard.view') && !can('pos.reports') ? { ...n, to: '/admin?tab=fiados' } : n,
+  );
 
   return (
     <div className="admin">
@@ -152,6 +152,9 @@ export function AdminLayout() {
     </div>
   );
 }
+
+/** true si tiene el permiso, o alguno de la lista. */
+export const canAny = (can: (p: string) => boolean, perm: string | string[]) => (Array.isArray(perm) ? perm.some(can) : can(perm));
 
 /** Bloquea una vista si el usuario no tiene el permiso (el backend también lo valida). */
 export function RequirePerm({ perm, children }: { perm: string; children: React.ReactNode }) {
