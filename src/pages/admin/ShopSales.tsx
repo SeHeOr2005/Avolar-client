@@ -31,7 +31,7 @@ interface Report {
   byDay: { date: string; label: string; total: number; profit: number }[];
   byMethod: { method: string; label: string; count: number; total: number }[];
   bySeller: { seller: string; count: number; total: number }[];
-  topProducts: { productId: string; name: string; quantity: number; revenue: number; profit: number }[];
+  topProducts: { productId: string | null; name: string; free: boolean; quantity: number; revenue: number; profit: number }[];
   lowStock: { id: string; name: string; stock: number; minStock: number }[];
 }
 interface SaleRow {
@@ -253,8 +253,10 @@ export default function ShopSalesPage() {
                     </thead>
                     <tbody>
                       {r.topProducts.map((t) => (
-                        <tr key={t.productId}>
-                          <td className="strong">{t.name}</td>
+                        <tr key={t.productId ?? `free-${t.name}`}>
+                          <td className="strong">
+                            {t.name} {t.free && <span className="badge badge--warn badge--plain">Venta libre</span>}
+                          </td>
                           <td className="num">{t.quantity}</td>
                           <td className="num">{money(t.revenue, currency)}</td>
                           <td className="num">{money(t.profit, currency)}</td>
@@ -515,10 +517,10 @@ function SaleModal({ id, currency, onClose }: { id: string; currency: string; on
               </thead>
               <tbody>
                 {s.items.map((i) => (
-                  <tr key={i.barcode}>
+                  <tr key={i.id}>
                     <td>
                       {i.name}
-                      <div className="tiny muted mono">{i.barcode}</div>
+                      <div className="tiny muted mono">{i.free ? <span className="badge badge--warn badge--plain">Venta libre</span> : i.barcode}</div>
                     </td>
                     <td className="num">{i.quantity}</td>
                     <td className="num">{money(i.unitPrice, currency)}</td>
@@ -537,7 +539,9 @@ function SaleModal({ id, currency, onClose }: { id: string; currency: string; on
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               hint={
-                s.customer
+                s.items.some((i) => i.free) && !s.customer
+                  ? 'El stock de los productos del inventario vuelve; las líneas de venta libre solo dejan de contar.'
+                  : s.customer
                   ? 'El stock vuelve al inventario, la venta deja de contar y se le descuenta de la deuda al cliente (si abonó al fiar, ese abono se le devuelve).'
                   : 'El stock de los productos vuelve al inventario y la venta deja de contar en las ganancias.'
               }

@@ -78,7 +78,19 @@ export interface SaleDetail {
   downPayment: { amount: number; method: MoneyMethod; label: string } | null;
   costTotal?: number;
   profit?: number;
-  items: { name: string; barcode: string; quantity: number; unitPrice: number; lineTotal: number; unitCost?: number; lineProfit?: number }[];
+  items: {
+    id: string;
+    name: string;
+    /** null en las líneas de venta libre. */
+    barcode: string | null;
+    /** Venta libre: artículo fuera del inventario con precio escrito a mano. */
+    free: boolean;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+    unitCost?: number;
+    lineProfit?: number;
+  }[];
 }
 
 /** Un código "parece" escaneado si no tiene espacios y solo usa caracteres válidos de código de barras. */

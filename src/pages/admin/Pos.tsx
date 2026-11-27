@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Banknote, HandCoins, Lock, Minus, Plus, Printer, ScanBarcode, ShoppingCart, Trash2, Unlock, Wallet } from 'lucide-react';
+import { Banknote, HandCoins, Lock, Minus, PencilLine, Plus, Printer, ScanBarcode, ShoppingCart, Trash2, Unlock, Wallet } from 'lucide-react';
 import { PageTitle } from '../../components/layout/AdminLayout';
 import { Button, ErrorState, Modal, Skeleton, TextArea, TextInput } from '../../components/ui';
 import { ApiError, api, qs } from '../../lib/api';
@@ -14,6 +14,15 @@ import { useAuth } from '../../hooks/auth';
 interface CartLine {
   product: ShopProduct;
   qty: number;
+}
+
+/** Línea de venta libre: artículo que no está en el inventario, con precio escrito a mano. */
+interface FreeLine {
+  key: number;
+  description: string;
+  unitPrice: number;
+  qty: number;
+  unitCost: number | null;
 }
 
 export default function PosPage() {
@@ -97,6 +106,10 @@ function Register({ session }: { session: OpenSession }) {
   const [closing, setClosing] = useState(false);
   const [paying, setPaying] = useState(false);
   const [notFound, setNotFound] = useState<string | null>(null);
+  const [freeLines, setFreeLines] = useState<FreeLine[]>([]);
+  /** null = cerrado; string = abierto con esa descripción sugerida. */
+  const [freeOpen, setFreeOpen] = useState<string | null>(null);
+  const canFree = can('pos.free_sale');
   // Fiado: cliente y abono en el momento (opcional).
   const [customer, setCustomer] = useState<ShopCustomer | null>(null);
   const [down, setDown] = useState('');
@@ -109,7 +122,7 @@ function Register({ session }: { session: OpenSession }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement as HTMLElement | null;
-      if (done || closing || paying || !scanRef.current) return;
+      if (done || closing || paying || freeOpen !== null || !scanRef.current) return;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
       e.preventDefault();
@@ -118,7 +131,7 @@ function Register({ session }: { session: OpenSession }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [done, closing, paying]);
+  }, [done, closing, paying, freeOpen]);
 
   const search = useQuery({
     queryKey: ['pos-search', scan],
@@ -190,8 +203,16 @@ function Register({ session }: { session: OpenSession }) {
       }),
     );
 
-  const total = useMemo(() => cart.reduce((s, l) => s + Math.round(l.product.price * 100) * l.qty, 0) / 100, [cart]);
-  const items = cart.reduce((n, l) => n + l.qty, 0);
+  const setFreeQty = (key: number, qty: number) =>
+    setFreeLines((f) => f.flatMap((l) => (l.key !== key ? [l] : qty <= 0 ? [] : [{ ...l, qty: Math.min(qty, 10000) }])));
+
+  const total = useMemo(
+    () =>
+      (cart.reduce((s, l) => s + Math.round(l.product.price * 100) * l.qty, 0) + freeLines.reduce((s, l) => s + Math.round(l.unitPrice * 100) * l.qty, 0)) / 100,
+    [cart, freeLines],
+  );
+  const items = cart.reduce((n, l) => n + l.qty, 0) + freeLines.reduce((n, l) => n + l.qty, 0);
+  const hasLines = cart.length > 0 || freeLines.length > 0;
   const receivedNum = received === '' ? total : Number(received);
   const change = method === 'CASH' ? Math.max(0, receivedNum - total) : 0;
   const short = method === 'CASH' && receivedNum < total;
@@ -201,11 +222,12 @@ function Register({ session }: { session: OpenSession }) {
   const blocked = short || (credit && (!customer || downTooHigh));
 
   async function charge() {
-    if (!cart.length || blocked) return;
+    if (!hasLines || blocked) return;
     setCharging(true);
     try {
       const r = await api.post<{ sale: SaleDetail }>('/admin/pos/sales', {
         items: cart.map((l) => ({ productId: l.product.id, quantity: l.qty })),
+        freeItems: freeLines.map((l) => ({ description: l.description, unitPrice: l.unitPrice, quantity: l.qty, unitCost: l.unitCost })),
         paymentMethod: method,
         cashReceived: method === 'CASH' ? receivedNum : null,
         customerId: credit ? customer!.id : null,
@@ -214,6 +236,7 @@ function Register({ session }: { session: OpenSession }) {
       beep('ok');
       setDone(r.sale);
       setCart([]);
+      setFreeLines([]);
       setReceived('');
       setMethod('CASH');
       setCustomer(null);
@@ -270,9 +293,26 @@ function Register({ session }: { session: OpenSession }) {
               autoFocus
             />
           </form>
+          {canFree && (
+            <div>
+              <Button size="sm" variant="ghost" icon={<PencilLine aria-hidden />} onClick={() => setFreeOpen('')}>
+                Registrar venta libre
+              </Button>
+            </div>
+          )}
           {notFound && (
             <div className="alert alert--warn" role="alert">
-              No encontramos «{notFound}». {can('pos.inventory') ? 'Regístralo en Inventario tienda.' : 'Pide a un administrador que lo registre.'}
+              <div>
+                No encontramos «{notFound}». {can('pos.inventory') ? 'Regístralo en Inventario tienda' : 'Pide a un administrador que lo registre'}
+                {canFree ? ' o véndelo como venta libre.' : '.'}
+                {canFree && (
+                  <div style={{ marginTop: 8 }}>
+                    <Button size="sm" icon={<PencilLine aria-hidden />} onClick={() => setFreeOpen(looksLikeBarcode(notFound) && /\d/.test(notFound) ? '' : notFound)}>
+                      Venta libre
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           {scan.trim().length >= 2 && (search.data?.length ?? 0) > 0 && (
@@ -299,7 +339,7 @@ function Register({ session }: { session: OpenSession }) {
             </ul>
           )}
 
-          {cart.length ? (
+          {hasLines ? (
             <ul className="pos-cart" aria-label="Productos de la venta">
               {cart.map((l) => (
                 <li key={l.product.id} className="pos-line">
@@ -331,6 +371,37 @@ function Register({ session }: { session: OpenSession }) {
                   </div>
                   <strong className="pos-line__total num">{money(l.product.price * l.qty, currency)}</strong>
                   <button type="button" className="btn btn--ghost btn--icon btn--sm" aria-label={`Quitar ${l.product.name}`} onClick={() => setQty(l.product.id, 0)}>
+                    <Trash2 />
+                  </button>
+                </li>
+              ))}
+              {freeLines.map((l) => (
+                <li key={`free-${l.key}`} className="pos-line">
+                  <div className="pos-line__info">
+                    <strong>{l.description}</strong>
+                    <span className="row tiny muted" style={{ '--gap': '6px' } as React.CSSProperties}>
+                      <span className="badge badge--warn badge--plain">Venta libre</span>
+                      <span>{money(l.unitPrice, currency)} c/u</span>
+                    </span>
+                  </div>
+                  <div className="pos-qty">
+                    <button type="button" className="btn btn--icon btn--sm" aria-label="Quitar uno" onClick={() => setFreeQty(l.key, l.qty - 1)}>
+                      <Minus />
+                    </button>
+                    <input
+                      className="input"
+                      type="number"
+                      min={1}
+                      value={l.qty}
+                      aria-label={`Cantidad de ${l.description}`}
+                      onChange={(e) => setFreeQty(l.key, Number(e.target.value))}
+                    />
+                    <button type="button" className="btn btn--icon btn--sm" aria-label="Agregar uno" onClick={() => setFreeQty(l.key, l.qty + 1)}>
+                      <Plus />
+                    </button>
+                  </div>
+                  <strong className="pos-line__total num">{money(l.unitPrice * l.qty, currency)}</strong>
+                  <button type="button" className="btn btn--ghost btn--icon btn--sm" aria-label={`Quitar ${l.description}`} onClick={() => setFreeQty(l.key, 0)}>
                     <Trash2 />
                   </button>
                 </li>
@@ -417,11 +488,18 @@ function Register({ session }: { session: OpenSession }) {
               )}
             </div>
           )}
-          <Button variant="primary" size="lg" block loading={charging} disabled={!cart.length || blocked} onClick={charge}>
+          <Button variant="primary" size="lg" block loading={charging} disabled={!hasLines || blocked} onClick={charge}>
             {credit ? 'Fiar' : 'Cobrar'} {total > 0 ? money(total, currency) : ''}
           </Button>
-          {cart.length > 0 && (
-            <Button variant="ghost" block onClick={() => setCart([])}>
+          {hasLines && (
+            <Button
+              variant="ghost"
+              block
+              onClick={() => {
+                setCart([]);
+                setFreeLines([]);
+              }}
+            >
               Vaciar venta
             </Button>
           )}
@@ -439,6 +517,25 @@ function Register({ session }: { session: OpenSession }) {
         />
       )}
       {closing && <CloseRegister session={session} currency={currency} onClose={() => setClosing(false)} />}
+      {freeOpen !== null && (
+        <FreeItemModal
+          initial={freeOpen}
+          currency={currency}
+          withCost={can('pos.inventory') || can('pos.reports')}
+          onClose={() => {
+            setFreeOpen(null);
+            focusScan();
+          }}
+          onAdd={(l) => {
+            setFreeLines((f) => [...f, { ...l, key: Date.now() }]);
+            setScan('');
+            setNotFound(null);
+            beep('ok');
+            setFreeOpen(null);
+            focusScan();
+          }}
+        />
+      )}
       {paying && (
         <PaymentModal
           currency={currency}
@@ -449,6 +546,87 @@ function Register({ session }: { session: OpenSession }) {
         />
       )}
     </>
+  );
+}
+
+/** Agregar a la venta un artículo que no está en el inventario: descripción, precio y cantidad a mano. */
+function FreeItemModal({
+  initial,
+  currency,
+  withCost,
+  onClose,
+  onAdd,
+}: {
+  initial: string;
+  currency: string;
+  withCost: boolean;
+  onClose: () => void;
+  onAdd: (l: Omit<FreeLine, 'key'>) => void;
+}) {
+  const [description, setDescription] = useState(initial);
+  const [price, setPrice] = useState('');
+  const [qty, setQty] = useState('1');
+  const [cost, setCost] = useState('');
+  const priceNum = Number(price || 0);
+  const qtyNum = Math.floor(Number(qty || 0));
+  const costNum = cost === '' ? null : Number(cost);
+  const errors = {
+    description: description.trim().length > 0 && description.trim().length < 2 ? 'Describe lo que vendes' : undefined,
+    cost: costNum != null && costNum > priceNum ? 'El costo no puede ser mayor que el precio' : undefined,
+  };
+  const valid = description.trim().length >= 2 && priceNum > 0 && qtyNum >= 1 && qtyNum <= 10000 && !errors.cost;
+
+  function submit(e?: FormEvent) {
+    e?.preventDefault();
+    if (!valid) return;
+    onAdd({ description: description.trim(), unitPrice: priceNum, qty: qtyNum, unitCost: withCost ? costNum : null });
+  }
+
+  return (
+    <Modal
+      title="Venta libre"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button variant="primary" disabled={!valid} onClick={() => submit()} icon={<Plus aria-hidden />}>
+            Agregar {valid ? money(priceNum * qtyNum, currency) : ''}
+          </Button>
+        </>
+      }
+    >
+      <form className="stack" style={{ '--gap': '12px' } as React.CSSProperties} onSubmit={submit}>
+        <p className="small muted">Para algo que no está en el inventario. No descuenta stock y queda registrado en la Actividad con tu nombre.</p>
+        <TextInput
+          label="¿Qué vendes?"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          error={errors.description}
+          maxLength={140}
+          placeholder="Ej.: Encendedor genérico"
+          autoFocus
+        />
+        <div className="grid-2">
+          <TextInput label={`Precio por unidad (${currency})`} type="number" inputMode="numeric" min={1} value={price} onChange={(e) => setPrice(e.target.value)} />
+          <TextInput label="Cantidad" type="number" inputMode="numeric" min={1} max={10000} value={qty} onChange={(e) => setQty(e.target.value)} />
+        </div>
+        {withCost && (
+          <TextInput
+            label="Costo por unidad (opcional)"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={cost}
+            onChange={(e) => setCost(e.target.value)}
+            error={errors.cost}
+            hint="Para que la ganancia del reporte sea real. Si lo dejas vacío, cuenta como costo 0."
+          />
+        )}
+        <button type="submit" hidden />
+      </form>
+    </Modal>
   );
 }
 
@@ -501,9 +679,10 @@ export function SaleDone({ sale, currency, onClose }: { sale: SaleDetail; curren
         <table>
           <tbody>
             {sale.items.map((i) => (
-              <tr key={i.barcode}>
+              <tr key={i.id}>
                 <td>
                   {i.quantity} × {i.name}
+                  {i.free ? ' *' : ''}
                 </td>
                 <td style={{ textAlign: 'right' }}>{money(i.lineTotal, currency)}</td>
               </tr>
@@ -534,6 +713,7 @@ export function SaleDone({ sale, currency, onClose }: { sale: SaleDetail; curren
             </>
           )}
         </p>
+        {sale.items.some((i) => i.free) && <p>* Artículo registrado como venta libre.</p>}
         <p style={{ textAlign: 'center' }}>Documento de control interno. No es factura electrónica.</p>
       </div>
     </Modal>
